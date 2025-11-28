@@ -157,6 +157,7 @@ npm run test:coverage
 | [ROADMAP.md](./docs/ROADMAP.md) | 개발 로드맵 (7 Phase, 9개월) |
 | [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | 시스템 아키텍처 |
 | [DEV_GUIDE.md](./docs/DEV_GUIDE.md) | 개발자 가이드 |
+| [GIT_CONVENTIONS.md](./docs/GIT_CONVENTIONS.md) | Git 커밋 규칙 |
 
 ## 라이선스
 

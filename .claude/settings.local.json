@@ -10,7 +10,11 @@
       "WebSearch",
       "mcp__context7__get-library-docs",
       "Bash(ssh:*)",
-      "Bash(GIT_TRACE=1 GIT_SSH_COMMAND=\"ssh -v\" git ls-remote:*)"
+      "Bash(GIT_TRACE=1 GIT_SSH_COMMAND=\"ssh -v\" git ls-remote:*)",
+      "Bash(git -C /mnt/c/workspace/side-project_java/threejs_project config --list)",
+      "Bash(git -C /mnt/c/workspace/side-project_java/threejs_project log --oneline -10)",
+      "Bash(git -C /mnt/c/workspace/side-project_java/threejs_project branch -a)",
+      "Bash(git -C /mnt/c/workspace/side-project_java/threejs_project remote:*)"
     ],
     "deny": [],
     "ask": []
