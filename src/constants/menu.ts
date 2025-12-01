@@ -1,17 +1,6 @@
-import {
-  Box,
-  FileBox,
-  Home,
-  type LucideIcon
-} from 'lucide-react'
-import { ROUTES } from './routes'
-
-export interface MenuItem {
-  path: string
-  icon: LucideIcon
-  label: string
-  description: string
-}
+import { Coffee, Home } from 'lucide-react';
+import { ROUTES } from './routes';
+import type { MenuItem } from '@/types/menu';
 
 export const MENU_ITEMS: MenuItem[] = [
   {
@@ -21,15 +10,9 @@ export const MENU_ITEMS: MenuItem[] = [
     description: '메인 페이지'
   },
   {
-    path: ROUTES.CAD_VIEWER,
-    icon: FileBox,
-    label: 'CAD 뷰어',
-    description: 'CAD 파일 3D 뷰어'
-  },
-  {
-    path: ROUTES.THREE_DEMO,
-    icon: Box,
-    label: 'Three.js Demo',
-    description: '3D 그래픽 데모'
+    path: ROUTES.TEAPOT_DEMO,
+    icon: Coffee,
+    label: 'Teapot Demo',
+    description: 'Teapot 와이어프레임 예제'
   }
 ]

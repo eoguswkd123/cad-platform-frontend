@@ -20,7 +20,7 @@ Three.js 기반 CAD 파일 3D 뷰어 및 키오스크 동기화 프로젝트
 | Phase | 이름 | 상태 |
 |-------|------|------|
 | 1 | Foundation | ✅ 완료 |
-| 2 | CAD Features | 🔄 80% |
+| 2A | CAD Features (FE) | 🔄 진행중 |
 | 3-7 | Backend ~ Production | 📋 계획 |
 
 > 자세한 로드맵은 [ROADMAP.md](./docs/ROADMAP.md) 참조
@@ -67,10 +67,7 @@ src/
 ├── config/           # 전역 설정
 ├── constants/        # 상수 정의
 ├── features/         # 도메인 기능 모듈
-│   ├── three/        # Three.js 베이스 컴포넌트
-│   ├── viewer/       # CAD 뷰어 메인
-│   ├── cad/          # CAD 파싱/렌더링
-│   └── sync/         # 키오스크 동기화
+│   └── TeapotDemo/   # Three.js 학습 예제
 ├── hooks/            # 전역 커스텀 훅
 ├── locales/          # 다국어 (i18n)
 ├── pages/            # 페이지 컴포넌트
@@ -137,15 +134,15 @@ npm run test:coverage
 
 ### 구현 완료
 
-- **DXF 파일 파싱**: 웹에서 DXF 파일 직접 파싱
-- **3D 렌더링**: Three.js 기반 CAD 도면 시각화
-- **레이어 제어**: 레이어별 표시/숨김
-- **카메라 제어**: OrbitControls, 뷰 프리셋 (Top, Front, ISO)
-- **엔티티 선택**: 클릭/호버로 객체 선택
+- **Three.js Teapot 예제**: 와이어프레임/쉐이딩 학습 예제
+- **GUI 컨트롤**: lil-gui 파라미터 조정 패널
+- **카메라 제어**: OrbitControls 기본 컨트롤
 
 ### 개발 예정
 
-- **Three.js Teapot 예제**: 와이어프레임 학습용 예제
+- **DXF 파일 파싱**: 웹에서 DXF 파일 직접 파싱
+- **CAD 3D 렌더링**: Three.js 기반 CAD 도면 시각화
+- **레이어 제어**: 레이어별 표시/숨김
 - **성능 최적화**: LOD, Instancing, WebWorker
 - **키오스크 동기화**: WebSocket 기반 실시간 동기화
 - **백엔드 연동**: CAD → glTF 변환 엔진
@@ -158,6 +155,7 @@ npm run test:coverage
 | [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | 시스템 아키텍처 |
 | [DEV_GUIDE.md](./docs/DEV_GUIDE.md) | 개발자 가이드 |
 | [GIT_CONVENTIONS.md](./docs/GIT_CONVENTIONS.md) | Git 커밋 규칙 |
+| [GLOSSARY.md](./docs/GLOSSARY.md) | 용어 및 약어 정의 |
 
 ## 라이선스
 

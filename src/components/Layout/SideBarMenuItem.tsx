@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import type { MenuItem as MenuItemType } from '@constants/menu';
+import type { MenuItem as MenuItemType } from '@/types/menu';
 
 interface SideBarMenuItemProps {
     item: MenuItemType;
