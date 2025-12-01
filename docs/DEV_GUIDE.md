@@ -16,6 +16,10 @@
 | 서비스 | camelCase.ts | `syncEngine.ts` |
 | 상수 | camelCase.ts | `app.ts`, `routes.ts` |
 | 폴더 | PascalCase | `CadRenderer/`, `ThreeCore/` |
+| URL 경로 | kebab-case | `/cad-viewer`, `/teapot-demo` |
+
+> **참고**: 폴더명(PascalCase)과 URL 경로(kebab-case)는 다른 규칙을 사용합니다.
+> 이는 코드 컨벤션(JavaScript/React)과 웹 표준(RFC 3986, SEO)의 관심사 분리 원칙입니다.
 
 ### 변수/함수
 
@@ -59,9 +63,9 @@
 |-----|------|------|
 | Config | 대상 + Config | `AppConfig`, `ThemeConfig` |
 
-## 파일 위치 결정 가이드
+## 파일 가이드
 
-새 코드 작성 시 어디에 둘지 빠르게 판단하는 흐름도
+새 코드 작성 시 위치 결정과 프로젝트 특화 패턴 참고
 
 ### 빠른 판단 흐름도
 
@@ -81,9 +85,20 @@
     │   ├─ 여러 곳에서 사용 → utils/
     │   └─ 복잡한 로직/클래스 → services/
     │
-    ├─ 타입 정의? → types/
+    ├─ 타입 정의?
+    │   ├─ 1개 도메인 전용 → features/[도메인]/types.ts
+    │   └─ 여러 곳에서 사용 → types/
     │
-    └─ 상태 관리? → stores/
+    ├─ 상수 정의?
+    │   ├─ 1개 도메인 전용 → features/[도메인]/constants.ts
+    │   └─ 여러 곳에서 사용 → constants/
+    │
+    ├─ 설정값? (환경변수 참조)
+    │   └─ config/
+    │
+    ├─ 상태 관리? → stores/
+    │
+    └─ CSS/스타일? → styles/
 ```
 
 ### 위치 판단 체크리스트
@@ -99,339 +114,293 @@
 #### Step 2: 복잡도 결정 (순수 함수인 경우)
 > "복잡한 로직/클래스가 필요한가요?"
 
-| 답변 | 복잡한 로직/클래스 | 간단한 함수 |
-|-----|------------------|------------|
-| 1개 도메인 전용 | `services/[도메인]/` | `features/[도메인]/utils/` |
-| 여러 곳에서 사용 | `services/` | `utils/` |
+| 답변 | utils | services |
+|-----|-------|----------|
+| 1개 도메인 전용 | `features/[도메인]/utils/` | `services/[도메인]/` |
+| 여러 곳에서 사용 | `utils/` | `services/` |
+
+#### Step 3: 타입/상수/설정 구분
+> "어떤 종류의 데이터인가요?"
+
+| 폴더 | 용도 | 기준 | 예시 |
+|------|------|------|------|
+| `types/` | 타입 정의 | 컴파일타임, interface/type 선언 | `MenuItem`, `UserProfile` |
+| `constants/` | 고정 상수 | 런타임, 환경 무관 고정값 | `ROUTES`, `MENU_ITEMS` |
+| `config/` | 앱 설정 | 런타임, 환경변수 참조 | `API_CONFIG` (import.meta.env 사용) |
 
 #### 판단 예시 모음
 
 | 만들려는 코드 | Step 1 | Step 2 | 최종 위치 |
 |-------------|--------|--------|----------|
-| CAD 파일 3D 렌더링 컴포넌트 | cad 전용 | - | `features/cad-renderer/components/` |
-| 날짜 포맷팅 함수 | 전역 | 간단 | `utils/format.ts` |
-| WebSocket 동기화 엔진 | sync 전용 | 클래스 | `services/sync/SyncEngine.ts` |
+| CAD 파일 3D 렌더링 컴포넌트 | cad 전용 | - | `features/CadRenderer/components/` |
 | 파일 업로드 상태 훅 | 전역 | - | `hooks/useFileUpload.ts` |
+| 날짜 포맷팅 함수 | 전역 | 간단 | `utils/format.ts` |
+| WebSocket 동기화 엔진 | sync 전용 | 클래스 | `services/sync/syncEngine.ts` |
 
 ---
 
-## 파일 생성 가이드
+## 코딩 스타일
 
-새 파일 생성 시 위치, 파일명, 기본 템플릿 참고
+### Import 순서
 
-### 요약 테이블
-
-| 유형 | 위치 | 파일명 규칙 |
-|------|------|------------|
-| 컴포넌트 | `components/` or `features/*/components/` | `ComponentName.tsx` |
-| 훅 | `hooks/` or `features/*/hooks/` | `useHookName.ts` |
-| 유틸리티 | `utils/` | `categoryName.ts` |
-| 타입 | `types/` | `domainName.ts` |
-| 스토어 | `stores/` | `domainStore.ts` |
-| API | `api/` | `serviceName.ts` |
-| 설정 | `config/` | `configName.ts` |
-| 상수 | `constants/` | `categoryName.ts` |
-
-### 상세 템플릿
-
-<details>
-<summary><strong>컴포넌트 생성</strong></summary>
-
-#### 위치
-- 공통: `src/components/`
-- 도메인 전용: `src/features/[도메인]/components/`
-
-#### 템플릿
 ```typescript
-import { useState } from 'react';
-
-interface ComponentNameProps {
-  className?: string;
-  onClick?: () => void;
-}
-
-export function ComponentName({ className, onClick }: ComponentNameProps) {
-  const [state, setState] = useState(false);
-
-  return (
-    <div className={className} onClick={onClick}>
-      {/* 컴포넌트 내용 */}
-    </div>
-  );
-}
-```
-
-</details>
-
-<details>
-<summary><strong>훅 생성</strong></summary>
-
-#### 위치
-- 공통: `src/hooks/`
-- 도메인 전용: `src/features/[도메인]/hooks/`
-
-#### 템플릿
-```typescript
+// 1. React
 import { useState, useCallback, useEffect } from 'react';
 
-interface UseHookNameOptions {
-  initialValue?: string;
-  onChange?: (value: string) => void;
-}
+// 2. 외부 라이브러리
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
 
-export function useHookName(options: UseHookNameOptions = {}) {
-  const { initialValue = '', onChange } = options;
+// 3. 내부 모듈 (path alias)
+import { useCADStore, useViewerStore } from '@stores';
+import { dxfParser } from '@services/cad';
 
-  // 상태
-  const [value, setValue] = useState(initialValue);
-  const [isLoading, setIsLoading] = useState(false);
+// 4. 상대 경로
+import { CadMesh } from './CadMesh';
+import { ViewerControls } from './ViewerControls';
 
-  // 액션
-  const updateValue = useCallback((newValue: string) => {
-    setValue(newValue);
-    onChange?.(newValue);
-  }, [onChange]);
-
-  // 부수 효과
-  useEffect(() => {
-    // 초기화 로직
-    return () => {
-      // 정리 로직
-    };
-  }, []);
-
-  return {
-    // 상태
-    value,
-    isLoading,
-    // 액션
-    updateValue,
-    // 계산값
-    hasValue: value.length > 0,
-  };
-}
+// 5. 타입 (type-only)
+import type { CADFile } from '@types/cad';
+import type { RenderMode } from '@types/viewer';
 ```
 
-</details>
+### Feature 모듈 Import 패턴
 
-<details>
-<summary><strong>유틸리티 생성</strong></summary>
+Feature 모듈(`features/[도메인]/`)의 import는 **내부**와 **외부**를 구분합니다.
 
-#### 위치
-- `src/utils/`
+> **참고**: 이 패턴은 **Feature-Sliced Design**, **Nx Monorepo**, **Angular Style Guide** 등에서 권장하는 업계 표준입니다.
+> Barrel 파일(index.ts)은 공개 API를 정의하고, 내부 구현은 직접 경로로 참조합니다.
 
-#### 템플릿
+#### 원칙
+
+| 컨텍스트 | Import 방식 | 이유 |
+|----------|-------------|------|
+| **내부** (feature 안) | 직접 상대 경로 | 순환 참조 방지, 명확한 의존성 |
+| **외부** (pages 등) | Barrel (index.ts) | 캡슐화, 공개 API |
+
+#### 올바른 예시
+
+```typescript
+// ✅ 내부 컴포넌트 (features/TeapotDemo/components/TeapotMesh.tsx)
+import { useTeapotMaterial } from '../hooks/useTeapotMaterial';
+import type { ShadingMode } from '../types';
+
+// ✅ 외부 소비자 (pages/TeapotDemo/index.tsx)
+import { TeapotScene } from '@/features/TeapotDemo';
+```
+
+#### 피해야 할 패턴
+
+```typescript
+// ❌ 내부에서 Barrel 사용 (순환 참조 위험!)
+// features/TeapotDemo/components/TeapotMesh.tsx
+import { useTeapotMaterial } from '..';  // index.ts에서 import
+import { useTeapotMaterial } from '@/features/TeapotDemo';  // 동일한 문제
+```
+
+#### 왜 이렇게 하나요?
+
+| 오해 | 실제 |
+|------|------|
+| "중복 import 아닌가?" | `export ... from`은 **re-export** (참조 통과), import 아님 |
+| "번들에 두 번 포함?" | JS 모듈은 **싱글톤** - 번들에 1번만 포함 |
+| "내부도 barrel 쓰면 편하지 않나?" | **순환 참조 위험** - 초기화 순서 문제 발생 가능 |
+
+#### Feature 모듈 구조
+
+```
+features/[도메인]/
+├── index.ts              # Barrel - 외부 공개 API (re-export)
+├── components/           # 내부: ../hooks, ../types 등 직접 참조
+│   └── Component.tsx
+├── hooks/
+│   └── useHook.ts
+├── types.ts              # 도메인 타입 정의
+└── constants.ts          # 도메인 상수
+```
+
+### 컴포넌트 작성 패턴
+
 ```typescript
 /**
- * 파일 크기를 읽기 쉬운 형식으로 변환
- * @param bytes - 바이트 단위 크기
- * @returns 포맷된 문자열 (예: "1.5 MB")
+ * 컴포넌트 설명
  */
-export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
 
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+// 1. Import
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+import { Canvas } from '@react-three/fiber';
+
+import { DEFAULT_SIZE } from '@constants';
+import { formatValue } from '@utils';
+import { useCADStore } from '@stores';
+
+import { LoadingPlaceholder } from './LoadingPlaceholder';
+
+import type { CADFile } from '@types/cad';
+
+// 2. 타입/인터페이스
+// 2-1. 인터페이스 (객체 형태)
+interface ComponentProps {
+    className?: string;
+}
+
+// 2-2. 타입 (유니온, 별칭)
+type Status = 'idle' | 'loading' | 'success' | 'error';
+
+// 3. 컴포넌트
+export function Component({ className }: ComponentProps) {
+    // 3-1. Store 훅
+    const data = useCADStore((state) => state.data);
+
+    // 3-2. 로컬 상태 (useState)
+    const [isOpen, setIsOpen] = useState(false);
+
+    // 3-3. Ref (useRef)
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    // 3-4. 계산된 값 (useMemo)
+    const computed = useMemo(() => data.length, [data]);
+
+    // 3-5. 핸들러 (useCallback)
+    const handleClick = useCallback(() => {
+        setIsOpen(true);
+    }, []);
+
+    // 3-6. 부수 효과 (useEffect)
+    useEffect(() => {
+        // 초기화
+    }, []);
+
+    // 3-7. 조건부 렌더링 (early return)
+    if (!data) return <LoadingPlaceholder />;
+
+    // 3-8. JSX 반환
+    return (
+        <div className={className}>
+            {/* 내용 */}
+        </div>
+    );
 }
 ```
 
-</details>
+### 타입 정의 패턴
 
-<details>
-<summary><strong>타입 생성</strong></summary>
-
-#### 위치
-- `src/types/`
-
-#### 템플릿
 ```typescript
-// ===== 기본 타입 =====
-export type Status = 'idle' | 'loading' | 'success' | 'error';
-
-// ===== 인터페이스 =====
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  createdAt: Date;
+// Interface - 객체 형태
+interface User {
+    id: string;
+    name: string;
 }
 
-// ===== Enum =====
-export enum FileStatus {
-  Pending = 'pending',
-  Uploading = 'uploading',
-  Complete = 'complete',
-  Error = 'error',
+// Interface - 다른 인터페이스를 타입으로 사용
+interface Address {
+    city: string;
+    zipCode: string;
 }
 
-// ===== 상수 + 타입 =====
-export const ROLES = ['admin', 'user', 'guest'] as const;
-export type Role = (typeof ROLES)[number];
-```
-
-</details>
-
-<details>
-<summary><strong>스토어 생성</strong></summary>
-
-#### 위치
-- `src/stores/`
-
-#### 템플릿
-```typescript
-import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
-
-// ===== 타입 =====
-interface DomainState {
-  data: string | null;
-  isLoading: boolean;
-  error: string | null;
+interface UserWithAddress {
+    id: string;
+    name: string;
+    address: Address;           // 인터페이스를 타입으로 사용
+    subAddresses?: Address[];   // 배열로도 사용 가능
 }
 
-interface DomainActions {
-  setData: (data: string) => void;
-  setLoading: (isLoading: boolean) => void;
-  reset: () => void;
-}
-
-// ===== 초기 상태 =====
-const initialState: DomainState = {
-  data: null,
-  isLoading: false,
-  error: null,
+// 사용 예시
+const user: UserWithAddress = {
+    id: '1',
+    name: 'Kim',
+    address: { city: 'Seoul', zipCode: '12345' },
 };
 
-// ===== 스토어 =====
-export const useDomainStore = create<DomainState & DomainActions>()(
-  devtools(
-    persist(
-      (set) => ({
-        ...initialState,
-
-        setData: (data) => set({ data }),
-        setLoading: (isLoading) => set({ isLoading }),
-        reset: () => set(initialState),
-      }),
-      { name: 'domain-storage' }
-    ),
-    { name: 'DomainStore' }
-  )
-);
-
-// ===== Selectors =====
-export const selectIsLoading = (state: DomainState) => state.isLoading;
-export const selectHasData = (state: DomainState) => state.data !== null;
-```
-
-</details>
-
-<details>
-<summary><strong>API 생성</strong></summary>
-
-#### 위치
-- `src/api/`
-
-#### 템플릿
-```typescript
-import axios from 'axios';
-
-// ===== API 클라이언트 =====
-export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// ===== 인터셉터 =====
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error);
-    return Promise.reject(error);
-  }
-);
-
-// ===== API 함수 =====
-export async function fetchUsers(): Promise<User[]> {
-  const { data } = await apiClient.get('/users');
-  return data;
+// Interface - 옵셔널 속성 (?)
+interface UserProfile {
+    id: string;
+    name: string;
+    email?: string;
 }
 
-export async function createUser(payload: CreateUserRequest): Promise<User> {
-  const { data } = await apiClient.post('/users', payload);
-  return data;
+// 사용 예시
+const user1: UserProfile = { id: '1', name: 'Kim' };                    // ✅ 생략
+const user2: UserProfile = { id: '1', name: 'Kim', email: 'a@b.com' };  // ✅ 값 있음
+const user3: UserProfile = { id: '1', name: 'Kim', email: null };       // ❌ null 불가
+
+// Interface - 상속 (extends)
+interface AdminUser extends User {
+    role: 'admin';
+    permissions: string[];
 }
+
+// Type - 유니온 (여러 값 중 하나)
+type Status = 'idle' | 'loading' | 'error';
+
+// Type - 객체 형태
+type Point = {
+    x: number;
+    y: number;
+    z?: number;
+};
+
+// Type - 인터섹션 (여러 타입 합치기)
+type AdminWithTimestamp = AdminUser & {
+    createdAt: Date;
+    updatedAt: Date;
+};
 ```
 
-</details>
+---
 
-<details>
-<summary><strong>설정 생성</strong></summary>
+## Git 워크플로우
 
-#### 위치
-- `src/config/`
+### 브랜치 전략
 
-#### 템플릿
-```typescript
-export const config = {
-  app: {
-    name: import.meta.env.VITE_APP_NAME || 'App',
-    version: import.meta.env.VITE_APP_VERSION || '1.0.0',
-  },
-  api: {
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
-    timeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '30000'),
-  },
-  features: {
-    enableAnalytics: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',
-    enableDebug: import.meta.env.DEV,
-  },
-} as const;
-
-export type AppConfig = typeof config;
+```
+master ← develop ← 기능명_이름
 ```
 
-</details>
+| 브랜치 | 설명 |
+|--------|------|
+| `master` | 프로덕션 배포 |
+| `develop` | 개발 통합 |
+| `기능명_이름` | 개인 작업 (예: `cad-layer_kim`) |
 
-<details>
-<summary><strong>상수 생성</strong></summary>
+```bash
+# 1. 작업 브랜치 생성
+git checkout develop
+git pull origin develop
+git checkout -b 기능명_이름
 
-#### 위치
-- `src/constants/`
+# 2. 작업 후 푸시
+git pull origin develop
+git add .
+git commit -m "feat: 기능 설명"
+git push origin 기능명_이름
 
-#### 템플릿
-```typescript
-// ===== 라우트 =====
-export const ROUTES = {
-  HOME: '/',
-  DASHBOARD: '/dashboard',
-  SETTINGS: '/settings',
-} as const;
-
-export type RouteKey = keyof typeof ROUTES;
-export type RoutePath = (typeof ROUTES)[RouteKey];
-
-// ===== 앱 상수 =====
-export const APP = {
-  NAME: 'CAD Viewer',
-  MAX_FILE_SIZE: 100 * 1024 * 1024, // 100MB
-  SUPPORTED_FORMATS: ['.dxf', '.dwg'] as const,
-} as const;
-
-// ===== 메뉴 =====
-export const MENU_ITEMS = [
-  { label: 'Home', href: ROUTES.HOME, icon: 'home' },
-  { label: 'Dashboard', href: ROUTES.DASHBOARD, icon: 'dashboard' },
-] as const;
+# 3. GitHub에서 develop으로 PR 생성
 ```
 
-</details>
+### 커밋 메시지 규칙
+
+| 타입 | 설명 |
+|------|------|
+| `feat` | 새 기능 |
+| `fix` | 버그 수정 |
+| `docs` | 문서 변경 |
+| `refactor` | 리팩토링 |
+| `style` | 포맷팅 |
+| `test` | 테스트 |
+| `chore` | 기타 |
+
+**형식**: `타입: 설명`
+
+```bash
+feat: 레이어 필터링 기능 추가
+fix: 뷰어 회전 시 좌표계 오류 해결
+docs: README 업데이트
+```
+
+> 상세 규칙은 [GIT_CONVENTIONS.md](GIT_CONVENTIONS.md) 참고
 
 ---
 
@@ -442,32 +411,23 @@ export const MENU_ITEMS = [
 - [x] 변수/함수 네이밍
 - [x] 타입/인터페이스 네이밍
 
-### 2. 파일 위치 결정 가이드 ✅
+### 2. 파일 가이드 ✅
 - [x] 빠른 판단 흐름도
 - [x] 위치 판단 체크리스트
+- [x] 타입/상수/설정 구분 기준
+- [x] 스타일 파일 위치
 
-### 3. 파일 생성 가이드 ✅
-- [x] 컴포넌트 생성
-- [x] 훅 생성
-- [x] 유틸리티 생성
-- [x] 타입 생성
-- [x] 스토어 생성
-- [x] API 생성
-- [x] 설정 생성
-- [x] 상수 생성
+### 3. 코딩 스타일 ✅
+- [x] import 순서
+- [x] Feature 모듈 Import 패턴
+- [x] 컴포넌트 작성 패턴
+- [x] 타입 정의 패턴
 
-### 4. 코딩 스타일
-- [ ] import 순서
-- [ ] 컴포넌트 작성 패턴
-- [ ] 훅 작성 패턴
-- [ ] 타입 정의 패턴
+### 4. Git 워크플로우 ✅
+- [x] 브랜치 전략
+- [x] 커밋 메시지 규칙
 
-### 5. 품질 관리
+### 5. 품질 관리 (추후 진행)
 - [ ] 테스트 작성 가이드
 - [ ] 에러 핸들링 규칙
 - [ ] 코드 리뷰 체크리스트
-
-### 6. Git 워크플로우
-- [ ] 브랜치 전략
-- [ ] 커밋 메시지 규칙
-- [ ] PR 작성 가이드

@@ -206,6 +206,7 @@ git stash list                  # 저장 목록 확인
 - [아키텍처 가이드](ARCHITECTURE.md) - 프로젝트 구조 및 설계
 - [개발 가이드](DEV_GUIDE.md) - 개발 환경 설정 및 코딩 규칙
 - [로드맵](ROADMAP.md) - 프로젝트 개발 계획
+- [용어집](GLOSSARY.md) - 용어 및 약어 정의
 
 ### Conventional Commits
 - [Conventional Commits 공식 사이트](https://www.conventionalcommits.org/) - 표준 스펙 및 가이드

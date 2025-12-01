@@ -16,6 +16,16 @@ Three.js 기반 CAD 뷰어에서 시작하여, **건축 도면 → 3D 모델 변
 2. JSON API로 프론트엔드에서 3D 모델 렌더링
 3. 키오스크 연동 및 키오스크 간 실시간 동기화
 
+### 상태 표시 범례
+
+| 아이콘 | 상태 | 설명 |
+|--------|------|------|
+| ✅ | 완료 | 100% 완료 및 검증됨 |
+| 🔄 | 진행중 | 현재 작업 중 (퍼센티지 표시) |
+| 📋 | 계획됨 | 설계 완료, 실행 대기 |
+| ⏳ | 차단됨 | 의존성 미충족으로 대기 |
+| ⏸️ | 보류 | 코드 삭제됨, 향후 재구현 예정 |
+
 ### 타임라인 개요 (DevOps 최적화)
 
 | Phase | 이름 | 기간 | 상태 | 비고 |
@@ -83,15 +93,15 @@ DXF 파일을 **프론트엔드에서** 렌더링하고 레이어별 제어 + Th
 
 | Milestone | 주요 내용 | Status |
 |-----------|----------|--------|
-| DXF Parser | 파일 파싱, 엔티티 추출 | ✅ |
-| Geometry Converter | DXF → Three.js 변환 | ✅ |
-| CAD Scene | 3D 렌더링 컴포넌트 | ✅ |
-| Layer Panel | 레이어 표시/숨김 UI | ✅ |
-| Viewer Controls | 카메라 프리셋, 뷰 제어 | ✅ |
-| Selection | 엔티티 선택/호버 | ✅ |
+| **Teapot 예제** | Three.js 와이어프레임 학습 예제 | ✅ |
+| **GUI 컨트롤** | lil-gui 파라미터 조정 패널 | ✅ |
+| DXF Parser | 파일 파싱, 엔티티 추출 | ⏸️ 보류 |
+| Geometry Converter | DXF → Three.js 변환 | ⏸️ 보류 |
+| CAD Scene | 3D 렌더링 컴포넌트 | ⏸️ 보류 |
+| Layer Panel | 레이어 표시/숨김 UI | ⏸️ 보류 |
+| Viewer Controls | 카메라 프리셋, 뷰 제어 | ⏸️ 보류 |
+| Selection | 엔티티 선택/호버 | ⏸️ 보류 |
 | **PDF 업로드 지원** | PDF 파일 선택 UI + 백엔드 전송 준비 | 📋 TODO |
-| **Teapot 예제** | Three.js 와이어프레임 학습 예제 | 📋 TODO |
-| **GUI 컨트롤** | lil-gui 파라미터 조정 패널 | 📋 TODO |
 | 줌/패닝 개선 | 사용성 개선 | 📋 TODO |
 | **Unit 테스트** | Vitest 테스트 인프라 구축 | 📋 TODO |
 
@@ -445,6 +455,7 @@ UX 개선, 품질 향상, 접근성
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | 시스템 구조, 패키지 설계 |
 | [DEV_GUIDE.md](./DEV_GUIDE.md) | 개발 가이드, 컨벤션 |
 | [GIT_CONVENTIONS.md](./GIT_CONVENTIONS.md) | Git 워크플로우, 커밋 규칙 |
+| [GLOSSARY.md](./GLOSSARY.md) | 용어 및 약어 정의 |
 
 ---
 

@@ -67,6 +67,45 @@ CAD 도면 → 3D 건축물 뷰어 데이터 플로우
 
 ---
 
+## 학습 예제와 실제 구현
+
+Teapot Demo는 CAD Viewer의 핵심 패턴을 학습하기 위한 예제입니다.
+
+### 비교 다이어그램
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Teapot Demo (학습용)                                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│   TeapotGeometry   →   Material   →   Mesh   →   Scene         │
+│   (Three.js 내장)      (6가지 모드)    (렌더링)    (Controls)    │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓ 패턴 재사용
+┌─────────────────────────────────────────────────────────────────┐
+│  CAD Viewer (실제 구현 예정)                                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│   DXF/PDF 업로드  →  Parser  →  Geometry  →  Mesh  →  Scene    │
+│   (사용자 파일)     (ezdxf)    (동적 생성)   (렌더링)  (Controls) │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 패턴 재사용
+
+| 학습 (Teapot) | 실제 (CAD) | 재사용 요소 |
+|---------------|------------|-------------|
+| TeapotGeometry | DXF Parser → BufferGeometry | Geometry 처리 패턴 |
+| MeshStandardMaterial | 동일 | Material 시스템 |
+| OrbitControls | 동일 | 카메라 제어 |
+| React Three Fiber | 동일 | 렌더링 프레임워크 |
+
+> **참고**: Teapot Demo 상세 구현은 [TEAPOT_IMPLEMENTATION.md](./Phase2A/TEAPOT_IMPLEMENTATION.md) 참조
+
+---
+
 ## 아키텍처 개요
 
 Layer-Based Architecture를 채택하여 관심사 분리와 의존성 방향을 명확히 합니다.
@@ -87,14 +126,13 @@ src/
 │   └── apiCaller.ts       # Axios 인스턴스
 │
 ├── assets/                # 정적 리소스
-│   └── (images, fonts)
 │
 ├── components/            # 공통 컴포넌트
-│   ├── Layout/            # 레이아웃 (MainLayout, SideBar, Footer)
-│   └── common/            # 공통 UI (Button, Input, Toast, Modal)
+│   └── Layout/            # MainLayout, SideBar, Footer
 │
 ├── config/                # 전역 설정
-│   └── index.ts           # APP, ENV, UPLOAD, SYNC 설정
+│   ├── index.ts           # APP, ENV 설정
+│   └── api.ts             # API 설정
 │
 ├── constants/             # 상수
 │   ├── app.ts             # 앱 상수
@@ -102,71 +140,43 @@ src/
 │   └── menu.ts            # 메뉴 설정
 │
 ├── features/              # 도메인 기능 모듈
-│   ├── three-core/        # Three.js 베이스 엔진
-│   │   ├── components/    # Scene, 기본 도형
-│   │   ├── config/        # Three.js 설정
-│   │   ├── hooks/         # useThree
-│   │   └── utils/         # 순수 함수 (React 없음, 10줄 이하, 선택)
-│   │
-│   ├── cad-renderer/      # CAD 3D 렌더링
-│   │   ├── components/    # CadScene, CadMesh, LayerPanel
-│   │   └── hooks/         # useCADLoader, useSelection
-│   │
-│   ├── cad-processor/     # CAD 데이터 처리
-│   │   ├── parser/        # DXF 파싱
-│   │   ├── converter/     # 2D→3D 변환
-│   │   └── hooks/         # useParser, useConverter
-│   │
-│   └── sync/              # 동기화 기능
-│       ├── components/
-│       └── hooks/
+│   └── TeapotDemo/        # Three.js 학습 예제
+│       ├── components/    # TeapotScene, TeapotMesh, TeapotControls
+│       ├── hooks/         # useTeapotMaterial
+│       ├── constants.ts
+│       ├── types.ts
+│       └── index.ts
 │
 ├── hooks/                 # 전역 훅
-│   └── useSync.ts         # 동기화 훅 (여러 feature에서 사용)
+│   └── index.ts
 │
 ├── locales/               # 다국어
 │   ├── ko.json
 │   └── en.json
 │
 ├── pages/                 # 페이지 컴포넌트
-│   ├── CadViewer/         # CAD 뷰어 페이지
-│   ├── KioskDisplay/      # 키오스크 디스플레이
-│   └── ThreeDemo/         # Three.js 데모
+│   ├── Home/              # 홈 페이지
+│   └── TeapotDemo/        # Teapot 데모 페이지
 │
 ├── routes/                # 라우팅
 │   └── root.tsx
 │
 ├── services/              # 복잡한 로직 (React 없음, 클래스/엔진, 10줄 이상)
-│   ├── common/            # 전역 공유 로직
-│   │   ├── storage/       # 로컬스토리지, IndexedDB 래퍼
-│   │   ├── cache/         # 캐싱 엔진
-│   │   └── validator/     # 복잡한 검증 로직
-│   │
-│   ├── cad/               # CAD 처리
-│   │   ├── parser/        # DXF 파싱
-│   │   └── converter/     # Three.js 변환
-│   │
-│   └── sync/              # 동기화 엔진
-│       ├── transports/    # WebSocket, WebRTC
-│       └── SyncEngine.ts
-│
-├── utils/                 # 순수 함수 (React 없음, 10줄 이하)
-│   ├── format.ts          # 포맷팅 (파일크기, 날짜)
-│   ├── validation.ts      # 검증 (파일, 이메일)
-│   └── async.ts           # 비동기 (debounce, throttle)
+│   └── index.ts
 │
 ├── stores/                # Zustand 상태 관리
-│   ├── cadStore.ts        # CAD 상태
-│   ├── viewerStore.ts     # 뷰어 상태
-│   └── syncStore.ts       # 동기화 상태
+│   └── index.ts
 │
 ├── styles/                # 전역 스타일
 │   └── global.css
 │
-└── types/                 # 타입 정의
-    ├── cad.ts
-    ├── viewer.ts
-    └── sync.ts
+├── types/                 # 타입 정의
+│   ├── env.d.ts           # 환경 타입
+│   ├── menu.ts            # 메뉴 타입
+│   └── index.ts
+│
+└── utils/                 # 순수 함수 (React 없음, 10줄 이하)
+    └── index.ts
 ```
 
 ## 레이어별 역할
@@ -175,11 +185,11 @@ src/
 |--------|------|--------|
 | `api/` | API 통신 레이어 (Axios 인스턴스) | config |
 | `assets/` | 정적 리소스 (이미지, 폰트) | - |
-| `components/` | 공통 재사용 UI (Layout, Button, Modal) | - |
-| `config/` | 전역 설정 (APP, ENV, UPLOAD) | - |
+| `components/` | 공통 재사용 UI (Layout) | - |
+| `config/` | 전역 설정 (APP, ENV, API) | - |
 | `constants/` | 상수 정의 (routes, menu, app) | - |
-| `features/` | 도메인 기능 모듈 (components, hooks, utils) | services, stores |
-| `hooks/` | 전역 훅 (여러 feature에서 공유) | stores, services |
+| `features/` | 도메인 기능 모듈 (components, hooks) | stores |
+| `hooks/` | 전역 훅 | stores |
 | `locales/` | 다국어 리소스 (ko, en) | - |
 | `pages/` | 페이지 조합 (라우트별) | features, components |
 | `routes/` | 라우팅 설정 | pages |
@@ -198,3 +208,4 @@ src/
 | [ROADMAP.md](./ROADMAP.md) | 개발 일정 및 마일스톤 |
 | [DEV_GUIDE.md](./DEV_GUIDE.md) | 개발 가이드 및 컨벤션 |
 | [GIT_CONVENTIONS.md](./GIT_CONVENTIONS.md) | Git 워크플로우 및 커밋 규칙 |
+| [GLOSSARY.md](./GLOSSARY.md) | 용어 및 약어 정의 |
