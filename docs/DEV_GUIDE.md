@@ -11,11 +11,13 @@
 - [파일 가이드](#파일-가이드)
     - [빠른 판단 흐름도](#빠른-판단-흐름도)
     - [위치 판단 체크리스트](#위치-판단-체크리스트)
+    - [페이지 전용 컴포넌트](#페이지-전용-컴포넌트)
 - [코딩 스타일](#코딩-스타일)
     - [Import 순서](#import-순서)
     - [Feature 모듈 Import 패턴](#feature-모듈-import-패턴)
     - [컴포넌트 작성 패턴](#컴포넌트-작성-패턴)
     - [타입 정의 패턴](#타입-정의-패턴)
+    - [Props 설계 가이드](#props-설계-가이드)
 - [테스트 가이드](#테스트-가이드)
     - [테스트 실행](#테스트-실행)
     - [테스트 파일 구조](#테스트-파일-구조)
@@ -181,6 +183,43 @@
 | 파일 업로드 상태 훅         | 전역      | -      | `hooks/useFileUpload.ts`           |
 | 날짜 포맷팅 함수            | 전역      | 간단   | `utils/format.ts`                  |
 | WebSocket 동기화 엔진       | sync 전용 | 클래스 | `services/sync/syncEngine.ts`      |
+
+### 페이지 전용 컴포넌트
+
+페이지에서만 사용되는 컴포넌트는 해당 페이지 폴더 내에 배치합니다.
+
+> **근거**: Feature-First 아키텍처와 동일한 원칙 적용 (소유권 기반 배치)
+> Next.js App Router, Remix 등 현대 프레임워크에서도 colocation 패턴 권장
+
+#### 원칙
+
+| 조건                         | 위치                 |
+| ---------------------------- | -------------------- |
+| 해당 페이지에서만 사용       | `pages/[Page]/`      |
+| 2개+ 페이지/feature에서 사용 | `components/Common/` |
+
+#### 구조 예시
+
+```
+pages/Home/
+├── index.tsx        # HomePage (메인 컴포넌트)
+└── DemoCard.tsx     # 페이지 전용 컴포넌트
+```
+
+#### 마이그레이션 규칙
+
+1. **처음**: 페이지 내부에 정의 (작은 컴포넌트)
+2. **파일 커지면**: 같은 폴더에 분리 (`pages/Home/DemoCard.tsx`)
+3. **재사용 시**: `components/Common/`으로 이동 (일반화)
+
+```
+# 마이그레이션 경로
+pages/Home/index.tsx (내부 정의)
+    ↓ 파일 커짐
+pages/Home/DemoCard.tsx (분리)
+    ↓ 다른 곳에서 재사용
+components/Common/Card.tsx (일반화)
+```
 
 ---
 
@@ -397,9 +436,89 @@ type AdminWithTimestamp = AdminUser & {
 };
 ```
 
+#### Props 설계 가이드
+
+##### Optional vs Required 판단 기준
+
+| 질문                                    | Yes → Optional | No → Required |
+| --------------------------------------- | -------------- | ------------- |
+| 이 prop 없이 컴포넌트가 의미 있나?      | ✅             | ❌            |
+| 합리적인 기본값이 존재하나?             | ✅             | ❌            |
+| 호출자가 "안 줘도 됨"을 의도할 수 있나? | ✅             | ❌            |
+
+```tsx
+// ✅ Optional 적합 - 기본 동작 가능
+interface ButtonProps {
+    label: string; // 필수 - 텍스트 없으면 버튼 의미 없음
+    disabled?: boolean; // 선택 - 기본값 false
+    variant?: 'primary' | 'secondary'; // 선택 - 기본 스타일 있음
+}
+
+// ❌ Optional 부적합 - 핵심 기능에 필수
+interface DemoCardProps {
+    hue: number; // 필수 - 색상 없으면 카드 목적 불명확
+    title: string;
+}
+```
+
+##### 배열 인덱싱과 타입 안전성
+
+`tsconfig.json`의 `noUncheckedIndexedAccess: true` 설정으로 인해
+배열 인덱싱은 항상 `T | undefined`를 반환합니다.
+
+```tsx
+const arr: number[] = [1, 2, 3];
+const value = arr[0]; // 타입: number | undefined (항상)
+```
+
+**방어적 처리 패턴**:
+
+```tsx
+// ✅ 부모에서 fallback 처리 (권장)
+<DemoCard hue={cardHues[index] ?? 0} />;
+
+// 자식은 필수 props로 선언
+interface DemoCardProps {
+    hue: number;
+}
+```
+
+**책임 분리 원칙**:
+
+| 역할 | 책임                                           |
+| ---- | ---------------------------------------------- |
+| 부모 | 데이터 접근 안전성 (배열 인덱싱 `?? fallback`) |
+| 자식 | 렌더링 (유효한 값 기대, 필수 props 선언)       |
+
 ---
 
 ## 테스트 가이드
+
+### 테스트 구조 (Co-located 방식)
+
+프로젝트는 **Co-located** 테스트 구조를 사용합니다. 단위 테스트는 소스 파일 옆에 위치하고, 공유 인프라는 `tests/` 폴더에 있습니다.
+
+```
+src/
+├── features/CADViewer/
+│   ├── utils/
+│   │   ├── validators.ts
+│   │   └── __tests__/               # 단위 테스트 (소스 옆)
+│   │       └── validators.test.ts
+│   └── hooks/
+│       └── __tests__/
+│
+tests/                                # 공유 인프라
+├── setup/                           # 테스트 환경 설정
+│   ├── vitest-setup.ts              # 글로벌 설정
+│   └── test-utils.tsx               # 커스텀 render
+├── mocks/                           # 모킹 유틸리티
+│   └── three.ts                     # Three.js 모킹
+├── fixtures/                        # 테스트 데이터
+│   └── dxf/                         # DXF 테스트 파일
+├── integration/                     # 통합 테스트
+└── scripts/                         # 성능 테스트 스크립트
+```
 
 ### 테스트 실행
 
@@ -409,15 +528,80 @@ type AdminWithTimestamp = AdminUser & {
 | `npm run test:ui`       | Vitest UI 모드       |
 | `npm run test:coverage` | 커버리지 리포트 생성 |
 
-### 테스트 파일 구조
+### 테스트 유형별 가이드
 
+| 테스트 유형           | 위치                       | 네이밍       | 예시                    |
+| --------------------- | -------------------------- | ------------ | ----------------------- |
+| **Unit** (순수 함수)  | `feature/__tests__/`       | `*.test.ts`  | `validators.test.ts`    |
+| **Component** (React) | `feature/__tests__/`       | `*.test.tsx` | `CADScene.test.tsx`     |
+| **Hook**              | `feature/hooks/__tests__/` | `*.test.ts`  | `useDXFParser.test.ts`  |
+| **Integration**       | `tests/integration/`       | `*.test.tsx` | `cad-workflow.test.tsx` |
+| **Performance**       | `tests/scripts/`           | `*.cjs`      | `perf-test-dxf.cjs`     |
+
+### 테스트 작성 패턴
+
+#### 기본 단위 테스트
+
+```typescript
+// src/features/CADViewer/utils/__tests__/validators.test.ts
+import { describe, it, expect } from 'vitest';
+import { validateFile } from '../validators';
+
+describe('validateFile', () => {
+    it('올바른 DXF 파일이면 valid: true 반환', () => {
+        const file = new File(['content'], 'test.dxf');
+        const result = validateFile(file);
+        expect(result.valid).toBe(true);
+    });
+});
 ```
-tests/
-├── fixtures/              # 테스트용 데이터 (배포 번들 제외)
-│   └── dxf/               # DXF 테스트 파일
-└── scripts/               # 테스트/성능 측정 스크립트
-    ├── generate-test-dxf.cjs  # 테스트 DXF 생성
-    └── perf-test-dxf.cjs      # 파싱 성능 측정
+
+#### Provider가 필요한 컴포넌트 테스트
+
+```typescript
+// src/features/CADViewer/components/__tests__/FileUpload.test.tsx
+import { render, screen } from '@tests/setup/test-utils';
+import { FileUpload } from '../FileUpload';
+
+it('파일 업로드 버튼이 보인다', () => {
+    render(<FileUpload />);
+    expect(screen.getByText('파일 선택')).toBeInTheDocument();
+});
+```
+
+#### Three.js 컴포넌트 테스트 (모킹 필요)
+
+```typescript
+// src/features/CADViewer/components/__tests__/CADScene.test.tsx
+import { setupR3FMocks } from '@tests/mocks/three';
+import { render, screen } from '@testing-library/react';
+import { CADScene } from '../CADScene';
+
+setupR3FMocks();
+
+it('CADScene이 렌더링된다', () => {
+    render(<CADScene />);
+    expect(screen.getByTestId('r3f-canvas')).toBeInTheDocument();
+});
+```
+
+### 테스트 유틸리티
+
+#### 커스텀 render (Provider 포함)
+
+`@tests/setup/test-utils.tsx`에서 제공하는 `render` 함수는 QueryClient, BrowserRouter가 자동으로 포함됩니다.
+
+```typescript
+import { render, screen } from '@tests/setup/test-utils';
+// 기본 @testing-library/react 대신 사용
+```
+
+#### 테스트용 File 객체 생성
+
+```typescript
+import { createTestFile, createTestDXFFile } from '@tests/setup/test-utils';
+
+const file = createTestDXFFile('sample.dxf', 1024); // 1KB DXF 파일
 ```
 
 ### 성능 테스트
@@ -429,6 +613,16 @@ node tests/scripts/generate-test-dxf.cjs
 # 파싱 성능 측정
 node tests/scripts/perf-test-dxf.cjs
 ```
+
+### 모킹 가이드
+
+| 대상               | 모킹 함수                  | 위치                   |
+| ------------------ | -------------------------- | ---------------------- |
+| Three.js Canvas    | `vitest-setup.ts`에서 자동 | `tests/setup/`         |
+| React Three Fiber  | `setupR3FMocks()`          | `tests/mocks/three.ts` |
+| Three.js 코어 객체 | `mockThreeCore()`          | `tests/mocks/three.ts` |
+
+> **참고**: `tests/setup/vitest-setup.ts`에서 Canvas, ResizeObserver, requestAnimationFrame이 자동으로 모킹됩니다.
 
 ---
 
@@ -500,13 +694,16 @@ Git 이벤트(commit, push 등)에 **스크립트를 자동 실행**합니다.
 ```bash
 # .husky/pre-commit (커밋 직전 실행)
 npx lint-staged
+
+# .husky/pre-push (푸시 직전 실행)
+npm run lint && npm run type-check && npm run build
 ```
 
-| Hook         | 트리거 시점      | 용도              |
-| ------------ | ---------------- | ----------------- |
-| `pre-commit` | 커밋 직전        | lint, format 검사 |
-| `pre-push`   | 푸시 직전        | 테스트 실행       |
-| `commit-msg` | 커밋 메시지 작성 | 메시지 형식 검증  |
+| Hook         | 트리거 시점      | 용도                             |
+| ------------ | ---------------- | -------------------------------- |
+| `pre-commit` | 커밋 직전        | lint, format 검사 (변경 파일만)  |
+| `pre-push`   | 푸시 직전        | lint + type-check + build (전체) |
+| `commit-msg` | 커밋 메시지 작성 | 메시지 형식 검증                 |
 
 ### lint-staged - 스테이징 파일 전용 실행기
 
@@ -535,6 +732,17 @@ npx lint-staged
 │                       ESLint                        Prettier        │
 │                    (코드 품질)                     (코드 스타일)     │
 └─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                        Git Push Flow                                 │
+│                                                                      │
+│  git push → Husky 트리거 → npm run lint → type-check → build        │
+│                                  │                                   │
+│                   ┌──────────────┼──────────────┐                    │
+│                   ▼              ▼              ▼                    │
+│               ESLint        TypeScript       Vite                    │
+│            (전체 검사)      (타입 검사)     (빌드)                   │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 **실제 흐름**:
@@ -548,6 +756,14 @@ npx lint-staged
         - `*.json,md,css` 파일: `prettier --write`
 4. 모두 통과 → 커밋 완료
 5. 오류 발생 → 커밋 차단! (수정 필요)
+
+**Git Push Flow**:
+
+1. `git push`
+2. Husky가 `pre-push` hook 트리거
+3. `npm run lint` → `npm run type-check` → `npm run build` 순차 실행
+4. 모두 통과 → 푸시 진행
+5. 하나라도 실패 → 푸시 차단! (수정 필요)
 
 ---
 
