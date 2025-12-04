@@ -15,8 +15,9 @@ import { renderHook } from '@testing-library/react';
 import * as THREE from 'three';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import type { ShadingMode } from '../../types';
 import { useTeapotMaterial, disposeMaterial } from '../useTeapotMaterial';
+
+import type { ShadingMode } from '../../types';
 
 beforeEach(() => {
     vi.clearAllMocks();
@@ -25,9 +26,7 @@ beforeEach(() => {
 describe('useTeapotMaterial', () => {
     describe('쉐이딩 모드별 Material 생성', () => {
         it('wireframe 모드: MeshBasicMaterial with wireframe=true', () => {
-            const { result } = renderHook(() =>
-                useTeapotMaterial('wireframe')
-            );
+            const { result } = renderHook(() => useTeapotMaterial('wireframe'));
 
             expect(result.current).toBeInstanceOf(THREE.MeshBasicMaterial);
             expect((result.current as THREE.MeshBasicMaterial).wireframe).toBe(
@@ -67,7 +66,9 @@ describe('useTeapotMaterial', () => {
 
             expect(result.current).toBeInstanceOf(THREE.MeshPhongMaterial);
             // textured 모드는 CanvasTexture를 생성하므로 map이 있어야 함
-            expect((result.current as THREE.MeshPhongMaterial).map).not.toBeNull();
+            expect(
+                (result.current as THREE.MeshPhongMaterial).map
+            ).not.toBeNull();
             expect(result.current.side).toBe(THREE.DoubleSide);
         });
 
@@ -129,9 +130,7 @@ describe('useTeapotMaterial', () => {
 
     describe('Material 속성 검증', () => {
         it('wireframe 모드 색상: 녹색 (0x00ff00)', () => {
-            const { result } = renderHook(() =>
-                useTeapotMaterial('wireframe')
-            );
+            const { result } = renderHook(() => useTeapotMaterial('wireframe'));
 
             const material = result.current as THREE.MeshBasicMaterial;
             expect(material.color.getHex()).toBe(0x00ff00);
@@ -168,7 +167,9 @@ describe('disposeMaterial', () => {
     });
 
     it('텍스처가 있는 MeshPhongMaterial: map과 material 모두 dispose', () => {
-        const texture = new THREE.CanvasTexture(document.createElement('canvas'));
+        const texture = new THREE.CanvasTexture(
+            document.createElement('canvas')
+        );
         const material = new THREE.MeshPhongMaterial({ map: texture });
 
         const materialDisposeSpy = vi.spyOn(material, 'dispose');
