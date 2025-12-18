@@ -2,15 +2,20 @@ import { Link } from 'react-router-dom';
 
 import { APP_CONFIG, MENU_ITEMS, ROUTES } from '@/constants';
 
-import SideBarMenuItem from './SideBarMenuItem';
+import { SideBarMenuItem } from './SideBarMenuItem';
 
-const SideBar = () => {
+export const SideBar = (): JSX.Element => {
     return (
-        <aside className="w-64 border-r border-gray-200 bg-white shadow-lg">
+        <aside
+            className="hidden w-64 border-r border-gray-200 bg-white shadow-lg md:block"
+            role="complementary"
+            aria-label="사이드바"
+        >
             {/* 로고 섹션 */}
             <Link
                 to={ROUTES.HOME}
                 className="block border-b border-gray-200 p-6 transition-colors hover:bg-gray-50"
+                aria-label={`${APP_CONFIG.NAME} 홈으로 이동`}
             >
                 <h1 className="text-xl font-bold text-gray-800">
                     {APP_CONFIG.NAME}
@@ -21,8 +26,8 @@ const SideBar = () => {
             </Link>
 
             {/* 메뉴 섹션 */}
-            <nav className="p-4">
-                <ul className="space-y-2">
+            <nav className="p-4" aria-label="메인 네비게이션">
+                <ul className="space-y-2" role="list">
                     {MENU_ITEMS.map((item) => (
                         <SideBarMenuItem key={item.path} item={item} />
                     ))}
@@ -31,5 +36,3 @@ const SideBar = () => {
         </aside>
     );
 };
-
-export default SideBar;

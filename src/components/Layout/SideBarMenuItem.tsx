@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import { NavLink } from 'react-router-dom';
 
 import type { MenuItem as MenuItemType } from '@/types/menu';
@@ -6,11 +8,12 @@ interface SideBarMenuItemProps {
     item: MenuItemType;
 }
 
-const SideBarMenuItem = ({ item }: SideBarMenuItemProps) => {
+function SideBarMenuItemComponent({ item }: SideBarMenuItemProps): JSX.Element {
     return (
         <li>
             <NavLink
                 to={item.path}
+                aria-label={item.description}
                 className={({ isActive }) =>
                     `flex items-center rounded-lg px-4 py-3 transition-colors ${
                         isActive
@@ -19,16 +22,26 @@ const SideBarMenuItem = ({ item }: SideBarMenuItemProps) => {
                     }`
                 }
             >
-                <item.icon className="mr-3 h-5 w-5" />
-                <div>
-                    <div className="font-medium">{item.label}</div>
-                    <div className="text-xs text-gray-500">
-                        {item.description}
-                    </div>
-                </div>
+                {({ isActive }) => (
+                    <>
+                        <span
+                            aria-current={isActive ? 'page' : undefined}
+                            className="sr-only"
+                        >
+                            {isActive ? '현재 페이지: ' : ''}
+                        </span>
+                        <item.icon className="mr-3 h-5 w-5" />
+                        <div>
+                            <div className="font-medium">{item.label}</div>
+                            <div className="text-xs text-gray-500">
+                                {item.description}
+                            </div>
+                        </div>
+                    </>
+                )}
             </NavLink>
         </li>
     );
-};
+}
 
-export default SideBarMenuItem;
+export const SideBarMenuItem = memo(SideBarMenuItemComponent);

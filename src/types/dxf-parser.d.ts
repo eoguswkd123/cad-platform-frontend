@@ -1,89 +1,43 @@
 /**
- * Type definitions for dxf-parser
- * DXF 파일 파싱 라이브러리 타입 정의
+ * Type declarations for dxf-parser
+ * 외부 npm 패키지 타입 선언 (최소화)
+ *
+ * 라이브러리 출력 데이터 타입은 @/types/dxf/library.ts 참조
  */
 
 declare module 'dxf-parser' {
-    interface DXFPoint {
-        x: number;
-        y: number;
-        z?: number;
-    }
-
-    interface DXFEntity {
-        type: string;
-        handle?: string;
-        layer?: string;
-        colorIndex?: number;
-        color?: number;
-        lineType?: string;
-        lineTypeScale?: number;
-    }
-
-    interface DXFLineEntity extends DXFEntity {
-        type: 'LINE';
-        vertices?: [DXFPoint, DXFPoint];
-        start?: DXFPoint;
-        end?: DXFPoint;
-    }
-
-    interface DXFCircleEntity extends DXFEntity {
-        type: 'CIRCLE';
-        center: DXFPoint;
-        radius: number;
-    }
-
-    interface DXFArcEntity extends DXFEntity {
-        type: 'ARC';
-        center: DXFPoint;
-        radius: number;
-        startAngle: number;
-        endAngle: number;
-    }
-
-    interface DXFPolylineEntity extends DXFEntity {
-        type: 'LWPOLYLINE' | 'POLYLINE';
-        vertices: DXFPoint[];
-        shape: boolean;
-    }
-
-    interface DXFLayer {
-        name: string;
-        color: number;
-        colorIndex?: number;
-        frozen?: boolean;
-        visible?: boolean;
-    }
-
-    interface DXFHeader {
-        $ACADVER?: string;
-        $INSUNITS?: number;
-        $EXTMIN?: DXFPoint;
-        $EXTMAX?: DXFPoint;
-        [key: string]: any;
-    }
-
-    interface DXFTables {
-        layer?: { [name: string]: DXFLayer };
-        [key: string]: any;
-    }
-
-    interface DXFBlock {
-        name: string;
-        layer: string;
-        position: DXFPoint;
-        entities: DXFEntity[];
-    }
-
+    /**
+     * dxf-parser 라이브러리가 반환하는 파싱 결과
+     * 상세 타입은 @/types/dxf/library.ts의 DXFLib* 타입 사용
+     */
     interface ParsedDXF {
-        header?: DXFHeader;
-        tables?: DXFTables;
-        blocks?: { [name: string]: DXFBlock };
-        entities: DXFEntity[];
+        header?: Record<string, unknown>;
+        tables?: {
+            layer?: {
+                layers: Record<string, unknown>;
+            };
+            [key: string]: unknown;
+        };
+        blocks?: Record<string, unknown>;
+        entities: unknown[];
     }
 
+    /**
+     * DXF 파서 클래스
+     */
     class DxfParser {
+        /**
+         * 동기식 파싱
+         * @param content DXF 파일 텍스트 내용
+         * @returns 파싱된 DXF 객체
+         */
         parseSync(content: string): ParsedDXF;
+
+        /**
+         * 비동기식 파싱 (콜백)
+         * @param content DXF 파일 텍스트 내용
+         * @param done 완료 콜백
+         */
         parse(
             content: string,
             done: (error: Error | null, dxf: ParsedDXF | null) => void
