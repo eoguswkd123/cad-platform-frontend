@@ -1,16 +1,51 @@
 {
-  "common": {
-    "loading": "Loading...",
-    "error": "An error occurred",
-    "confirm": "Confirm",
-    "cancel": "Cancel",
-    "save": "Save",
-    "delete": "Delete"
-  },
-  "nav": {
-    "home": "Home",
-    "cadViewer": "CAD Viewer",
-    "threeDemo": "Three.js Demo",
-    "teapotDemo": "Teapot Demo"
-  }
+    "common": {
+        "loading": "Loading...",
+        "error": "An error occurred",
+        "confirm": "Confirm",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete"
+    },
+    "nav": {
+        "home": "Home",
+        "cadViewer": "Cad Viewer",
+        "threeDemo": "Three.js Demo",
+        "teapotDemo": "Teapot Demo",
+        "workerViewer": "Worker Viewer"
+    },
+    "workerViewer": {
+        "title": "Worker Viewer",
+        "description": "glTF/glb 3D Model Viewer",
+        "loadSample": "Load Sample Model",
+        "loading": "Loading...",
+        "selectModel": "Select Model",
+        "availableModels": "Available Models",
+        "noModel": "No model loaded. Select a model or load a sample.",
+        "controls": {
+            "title": "Controls",
+            "showGrid": "Show Grid",
+            "autoRotate": "Auto Rotate",
+            "rotateSpeed": "Rotation Speed",
+            "resetView": "Reset View",
+            "clearModel": "Clear Model"
+        },
+        "modelInfo": {
+            "title": "Model Info",
+            "name": "Name",
+            "format": "Format",
+            "size": "Size"
+        },
+        "errors": {
+            "fetchError": "Failed to fetch model file.",
+            "parseError": "Failed to parse glTF/glb file.",
+            "notFound": "Model not found.",
+            "networkError": "Network error occurred.",
+            "viewerError": "3D Viewer Error",
+            "viewerErrorDesc": "An error occurred during 3D rendering. There may be a problem with WebGL or Canvas initialization.",
+            "retry": "Retry",
+            "refresh": "Refresh Page",
+            "webglHelp": "If the problem persists, please check if your browser supports WebGL."
+        }
+    }
 }

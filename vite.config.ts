@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
     plugins: [react()],
 
     // 경로 별칭 설정
@@ -34,7 +34,7 @@ export default defineConfig({
     // 빌드 설정
     build: {
         outDir: 'dist',
-        sourcemap: true,
+        sourcemap: mode !== 'production',
         rollupOptions: {
             output: {
                 manualChunks: {
@@ -51,4 +51,4 @@ export default defineConfig({
     define: {
         __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
     },
-});
+}));

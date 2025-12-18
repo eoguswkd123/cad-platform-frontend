@@ -1,4 +1,4 @@
-import { Coffee, Home, FileBox } from 'lucide-react';
+import { Coffee, Home, FileBox, Box } from 'lucide-react';
 
 import type { MenuItem } from '@/types/menu';
 
@@ -20,7 +20,13 @@ export const MENU_ITEMS: MenuItem[] = [
     {
         path: ROUTES.CAD_VIEWER,
         icon: FileBox,
-        label: 'CAD Viewer',
+        label: 'Cad Viewer',
         description: 'DXF 파일 3D 뷰어',
+    },
+    {
+        path: ROUTES.WORKER_VIEWER,
+        icon: Box,
+        label: 'Worker Viewer',
+        description: 'glTF/glb 3D 모델 뷰어',
     },
 ];

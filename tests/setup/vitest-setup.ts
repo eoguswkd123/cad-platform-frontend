@@ -5,7 +5,7 @@
 
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
-import { afterEach, vi } from 'vitest';
+import { afterEach, beforeAll, afterAll, vi } from 'vitest';
 
 // 각 테스트 후 DOM 정리
 afterEach(() => {
@@ -63,4 +63,18 @@ global.requestAnimationFrame = vi.fn((callback) => {
 
 global.cancelAnimationFrame = vi.fn((id) => {
     clearTimeout(id);
+});
+
+// Worker 글로벌 모킹
+// Vite의 Worker URL 변환을 우회하여 테스트에서 Worker 동작 시뮬레이션
+import { setupWorkerMock, clearWorkerMock } from '../mocks/worker';
+
+// 각 테스트 스위트 전에 Worker 모킹 설정
+beforeAll(() => {
+    setupWorkerMock();
+});
+
+// 테스트 종료 후 모킹 해제
+afterAll(() => {
+    clearWorkerMock();
 });

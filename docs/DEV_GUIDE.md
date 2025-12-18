@@ -1,12 +1,15 @@
 # 개발자 가이드
 
-> **Version**: 0.1.3
-> **Last Updated**: 2025-12-04
+> **Version**: 0.1.6
+> **Last Updated**: 2025-12-18
 
 프로젝트 개발 시 참고하는 가이드 문서
 
 ## 목차
 
+- [개발환경 설정](#개발환경-설정)
+    - [Quick Start](#quick-start)
+    - [주요 명령어](#주요-명령어)
 - [네이밍 컨벤션](#네이밍-컨벤션)
     - [파일/폴더](#파일폴더)
     - [변수/함수](#변수함수)
@@ -18,6 +21,7 @@
 - [코딩 스타일](#코딩-스타일)
     - [Import 순서](#import-순서)
     - [Feature 모듈 Import 패턴](#feature-모듈-import-패턴)
+    - [R3F 컴포넌트 패턴](#r3f-컴포넌트-패턴)
     - [컴포넌트 작성 패턴](#컴포넌트-작성-패턴)
     - [타입 정의 패턴](#타입-정의-패턴)
     - [Props 설계 가이드](#props-설계-가이드)
@@ -36,7 +40,53 @@
 - [Git 워크플로우](#git-워크플로우)
     - [브랜치 전략](#브랜치-전략)
     - [커밋 메시지 규칙](#커밋-메시지-규칙)
-- [TODO: 작성 예정 항목](#todo-작성-예정-항목)
+
+---
+
+## 개발환경 설정
+
+### Quick Start
+
+```bash
+# 1. 프로젝트 클론 및 이동
+cd cad-platform-frontend
+
+# 2. 의존성 설치
+npm install
+
+# 3. 개발 서버 실행
+npm run dev
+
+# 4. 테스트 실행 (선택)
+npm run test          # 전체 테스트
+npm run test:ui       # Vitest UI 모드
+npm run test:coverage # 커버리지 리포트
+
+# 5. 코드 자동 수정 (선택)
+npm run lint:fix
+
+# 6. 로컬 pre-push 검증 (GitHub Actions와 동일)
+npm run validate
+```
+
+**필수 도구**: Node.js 20+, npm 10+
+
+**VS Code 확장**: ESLint, Prettier, Tailwind CSS IntelliSense
+
+### 주요 명령어
+
+| 명령어                  | 설명                                         |
+| ----------------------- | -------------------------------------------- |
+| `npm run dev`           | 개발 서버 실행 (Vite)                        |
+| `npm run build`         | 프로덕션 빌드                                |
+| `npm run preview`       | 빌드 결과 미리보기                           |
+| `npm run lint`          | ESLint 검사                                  |
+| `npm run lint:fix`      | ESLint 자동 수정                             |
+| `npm run type-check`    | TypeScript 타입 검사                         |
+| `npm run test`          | Vitest 테스트 실행                           |
+| `npm run test:ui`       | Vitest UI 모드                               |
+| `npm run test:coverage` | 커버리지 리포트                              |
+| `npm run validate`      | 통합 검증 (lint + type-check + test + build) |
 
 ---
 
@@ -54,7 +104,7 @@
 | 서비스         | camelCase.ts         | `syncEngine.ts`                      |
 | 상수           | camelCase.ts         | `app.ts`, `routes.ts`                |
 | 카테고리 폴더  | camelCase            | `components/`, `features/`, `hooks/` |
-| 기능/모듈 폴더 | PascalCase           | `CADViewer/`, `Layout/`, `Home/`     |
+| 기능/모듈 폴더 | PascalCase           | `CadViewer/`, `Layout/`, `Home/`     |
 | URL 경로       | kebab-case           | `/cad-viewer`, `/teapot-demo`        |
 
 > **참고**: 폴더명(PascalCase)과 URL 경로(kebab-case)는 다른 규칙을 사용합니다.
@@ -310,6 +360,57 @@ features/[도메인]/
 └── constants.ts          # 도메인 상수
 ```
 
+### R3F 컴포넌트 패턴
+
+React Three Fiber(R3F) 기반 feature에서 컴포넌트는 **Canvas 내부/외부**로 구분됩니다.
+
+#### Canvas-Internal vs Overlay 컴포넌트
+
+| Type                     | Location           | Examples                            |
+| ------------------------ | ------------------ | ----------------------------------- |
+| **Canvas-internal (3D)** | `<Canvas>` 내부    | CADMesh, gridHelper, lights         |
+| **Overlay (HTML UI)**    | `<Canvas>` 외부    | CADControls, LayerPanel, FileUpload |
+| **3D-space HTML**        | `<Html>` from Drei | Annotations, labels (future)        |
+
+#### Feature 컴포넌트 진입점 규칙
+
+| 패턴            | 역할                                | 예시                            |
+| --------------- | ----------------------------------- | ------------------------------- |
+| `*Scene.tsx`    | **Main Container** (진입점)         | `CADScene`, `TeapotScene`       |
+| `*Mesh.tsx`     | 3D geometry rendering (Canvas 내부) | `CADMesh`, `TeapotMesh`         |
+| `*Controls.tsx` | HTML UI 컨트롤 (Canvas 외부)        | `CADControls`, `TeapotControls` |
+| `*Panel.tsx`    | HTML UI 패널 (Canvas 외부)          | `LayerPanel`                    |
+
+#### 구조 예시
+
+```
+features/CADViewer/components/
+├── CADScene.tsx       ← Main Container (진입점)
+├── CADMesh.tsx        ← Canvas-internal (3D)
+├── CADControls.tsx    ← HTML Overlay
+├── FileUpload.tsx     ← HTML Overlay
+├── LayerPanel.tsx     ← HTML Overlay
+└── index.ts           ← Barrel export (계층 구조 문서화)
+```
+
+#### 계층 구조 다이어그램
+
+```
+CADScene (Main Container)
+├── <Canvas>                    # 3D Context Boundary
+│   ├── <PerspectiveCamera />   # Canvas-internal
+│   ├── <OrbitControls />       # Canvas-internal
+│   ├── <CADMesh />             # Canvas-internal
+│   └── <gridHelper />          # Canvas-internal
+│
+├── <FileUpload />              # HTML Overlay (top-left)
+├── <CADControls />             # HTML Overlay (top-right)
+└── <LayerPanel />              # HTML Overlay (bottom-left)
+```
+
+> **참고**: R3F에서 `<Canvas>` 내부는 Three.js 컨텍스트, 외부는 일반 React DOM입니다.
+> UI 컨트롤은 HTML Overlay로 구현하는 것이 R3F Best Practice입니다.
+
 ### 컴포넌트 작성 패턴
 
 ```typescript
@@ -439,6 +540,16 @@ type AdminWithTimestamp = AdminUser & {
 };
 ```
 
+#### Props 정의 위치
+
+| 조건               | 위치           | 예시                            |
+| ------------------ | -------------- | ------------------------------- |
+| 1개 컴포넌트 전용  | 파일 내 인라인 | `interface ButtonProps { ... }` |
+| 2개+ 컴포넌트 공유 | types.ts 분리  | `ToggleProps`, `SliderProps`    |
+
+> **권장**: Props는 기본적으로 **인라인**으로 정의합니다.
+> 공유가 필요해지면 그때 분리합니다.
+
 #### Props 설계 가이드
 
 ##### Optional vs Required 판단 기준
@@ -555,11 +666,11 @@ tests/                                # 공유 인프라
 
 ### 테스트 파일 위치 패턴
 
-| 패턴        | 위치                               | 용도                      |
-| ----------- | ---------------------------------- | ------------------------- |
-| Co-located  | `src/**/__tests__/*.test.ts`       | 단위 테스트 (기능별 배치) |
-| Integration | `tests/integration/*.test.ts`      | 통합 테스트               |
-| E2E         | `tests/e2e/`                       | E2E 테스트 (현재 제외)    |
+| 패턴        | 위치                          | 용도                      |
+| ----------- | ----------------------------- | ------------------------- |
+| Co-located  | `src/**/__tests__/*.test.ts`  | 단위 테스트 (기능별 배치) |
+| Integration | `tests/integration/*.test.ts` | 통합 테스트               |
+| E2E         | `tests/e2e/`                  | E2E 테스트 (현재 제외)    |
 
 ### 테스트 실행
 
@@ -586,20 +697,20 @@ npm run test -- --run                 # 1회 실행 (watch 없이)
 
 #### `@tests/setup/test-utils.tsx`
 
-| 함수                 | 설명                                                |
-| -------------------- | --------------------------------------------------- |
-| `render`             | Provider 포함 커스텀 render (QueryClient + BrowserRouter) |
-| `createTestFile()`   | 테스트용 File 객체 생성                             |
-| `createTestDXFFile()` | DXF 전용 File 객체 생성                             |
+| 함수                  | 설명                                                      |
+| --------------------- | --------------------------------------------------------- |
+| `render`              | Provider 포함 커스텀 render (QueryClient + BrowserRouter) |
+| `createTestFile()`    | 테스트용 File 객체 생성                                   |
+| `createTestDXFFile()` | DXF 전용 File 객체 생성                                   |
 
 #### `@tests/mocks/three.tsx`
 
-| 함수                 | 설명                        |
-| -------------------- | --------------------------- |
-| `setupR3FMocks()`    | React Three Fiber + Drei 모킹 |
-| `mockThreeCore()`    | Three.js 코어 객체 모킹     |
-| `setupAllThreeMocks()` | 위 두 함수 통합 호출        |
-| `clearThreeMocks()`  | 모킹 초기화                 |
+| 함수                   | 설명                          |
+| ---------------------- | ----------------------------- |
+| `setupR3FMocks()`      | React Three Fiber + Drei 모킹 |
+| `mockThreeCore()`      | Three.js 코어 객체 모킹       |
+| `setupAllThreeMocks()` | 위 두 함수 통합 호출          |
+| `clearThreeMocks()`    | 모킹 초기화                   |
 
 ### 성능 테스트
 
@@ -613,9 +724,9 @@ node tests/scripts/perf-test-dxf.cjs
 
 ### 모킹 가이드
 
-| 대상               | 모킹 함수                  | 위치                   |
-| ------------------ | -------------------------- | ---------------------- |
-| Three.js Canvas    | `vitest-setup.ts`에서 자동 | `tests/setup/`         |
+| 대상               | 모킹 함수                  | 위치                    |
+| ------------------ | -------------------------- | ----------------------- |
+| Three.js Canvas    | `vitest-setup.ts`에서 자동 | `tests/setup/`          |
 | React Three Fiber  | `setupR3FMocks()`          | `tests/mocks/three.tsx` |
 | Three.js 코어 객체 | `mockThreeCore()`          | `tests/mocks/three.tsx` |
 
@@ -811,58 +922,15 @@ docs: README 업데이트
 
 ---
 
-## TODO: 작성 예정 항목
-
-### 1. 네이밍 컨벤션 ✅
-
-- ✅ 파일/폴더 네이밍
-- ✅ 변수/함수 네이밍
-- ✅ 타입/인터페이스 네이밍
-
-### 2. 파일 가이드 ✅
-
-- ✅ 빠른 판단 흐름도
-- ✅ 위치 판단 체크리스트
-- ✅ 타입/상수/설정 구분 기준
-- ✅ 스타일 파일 위치
-
-### 3. 코딩 스타일 ✅
-
-- ✅ import 순서
-- ✅ Feature 모듈 Import 패턴
-- ✅ 컴포넌트 작성 패턴
-- ✅ 타입 정의 패턴
-
-### 4. 테스트 가이드 ✅
-
-- ✅ 테스트 실행
-- ✅ 테스트 파일 구조
-- ✅ 성능 테스트
-
-### 5. 코드 품질 도구 ✅
-
-- ✅ 도구 개요 (ESLint, Prettier, Husky, lint-staged)
-- ✅ 각 도구 역할 설명
-- ✅ Git 커밋 시 실행 흐름도
-
-### 6. Git 워크플로우 ✅
-
-- ✅ 브랜치 전략
-- ✅ 커밋 메시지 규칙
-
-### 7. 품질 관리 (추후 진행)
-
-- ⏳ 에러 핸들링 규칙
-- ⏳ 코드 리뷰 체크리스트
-
----
-
 ## Changelog (변경 이력)
 
-| 버전  | 날짜       | 변경 내용                                            |
-| ----- | ---------- | ---------------------------------------------------- |
-| 0.1.3 | 2025-12-04 | 삭제된 PHASE_DEV_DOC_GUIDE.md 참조 제거              |
-| 0.1.2 | 2025-12-03 | pre-push lint 적용                                   |
-| 0.1.1 | 2025-12-02 | Phase개발 템플릿 개발완료                            |
-| 0.1.0 | 2025-12-01 | 개발자가이드 문서 업데이트, CAD Viewer 기능 추가     |
-| 0.0.0 | 2025-11-28 | 초기 버전                                            |
+| 버전  | 날짜       | 변경 내용                                                |
+| ----- | ---------- | -------------------------------------------------------- |
+| 0.1.6 | 2025-12-18 | Quick Start 섹션 추가, TODO 섹션 삭제 (완료된 항목)      |
+| 0.1.5 | 2025-12-17 | Props 정의 위치 가이드 추가 (인라인 권장)                |
+| 0.1.4 | 2025-12-15 | R3F 컴포넌트 패턴 섹션 추가 (Canvas-internal vs Overlay) |
+| 0.1.3 | 2025-12-04 | 삭제된 PHASE_DEV_DOC_GUIDE.md 참조 제거                  |
+| 0.1.2 | 2025-12-03 | pre-push lint 적용                                       |
+| 0.1.1 | 2025-12-02 | Phase개발 템플릿 개발완료                                |
+| 0.1.0 | 2025-12-01 | 개발자가이드 문서 업데이트, CAD Viewer 기능 추가         |
+| 0.0.0 | 2025-11-28 | 초기 버전                                                |

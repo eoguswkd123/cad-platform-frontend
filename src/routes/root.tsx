@@ -4,15 +4,20 @@ import { createBrowserRouter } from 'react-router-dom';
 
 import { ROUTES } from '@/constants/routes';
 
-const MainLayout = lazy(() => import('@/components/Layout/MainLayout'));
+const MainLayout = lazy(() =>
+    import('@/components/Layout').then((m) => ({ default: m.MainLayout }))
+);
+const ErrorPage = lazy(() => import('@/pages/Error'));
 const Home = lazy(() => import('@/pages/Home'));
 const TeapotDemo = lazy(() => import('@/pages/TeapotDemo'));
-const CADViewer = lazy(() => import('@/pages/CADViewer'));
+const CadViewer = lazy(() => import('@/pages/CadViewer'));
+const WorkerViewer = lazy(() => import('@/pages/WorkerViewer'));
 
 export const router = createBrowserRouter([
     {
         path: '/',
         element: <MainLayout />,
+        errorElement: <ErrorPage />,
         children: [
             {
                 index: true,
@@ -24,7 +29,11 @@ export const router = createBrowserRouter([
             },
             {
                 path: ROUTES.CAD_VIEWER,
-                element: <CADViewer />,
+                element: <CadViewer />,
+            },
+            {
+                path: ROUTES.WORKER_VIEWER,
+                element: <WorkerViewer />,
             },
         ],
     },
