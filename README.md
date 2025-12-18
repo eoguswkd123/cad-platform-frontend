@@ -17,12 +17,13 @@ Three.js 기반 CAD 파일 3D 뷰어 및 키오스크 동기화 프로젝트
 
 ## 현재 상태
 
-| Phase | 이름                 | 상태    |
-| ----- | -------------------- | ------- |
-| 1     | Foundation           | ✅ 완료 |
-| 1.5   | Three.js 학습        | ✅ 완료 |
-| 2A    | CAD Features (FE)    | ✅ 완료 |
-| 3-7   | Backend ~ Production | 📋 계획 |
+| Phase | 이름                 | 상태      |
+| ----- | -------------------- | --------- |
+| 1.1   | CI/CD & DevOps       | ✅ 완료   |
+| 1.2   | Three.js Demo        | ✅ 완료   |
+| 2.1   | DXF CAD Viewer       | 🔄 진행중 |
+| 3.2.2 | Worker Viewer        | ✅ 완료   |
+| 3-7   | Backend ~ Production | 📋 계획   |
 
 > 자세한 로드맵은 [ROADMAP.md](./docs/ROADMAP.md) 참조
 
@@ -52,13 +53,13 @@ Three.js 기반 CAD 파일 3D 뷰어 및 키오스크 동기화 프로젝트
 
 ### Backend (계획)
 
-| 카테고리      | 기술                           | 상태       |
-| ------------- | ------------------------------ | ---------- |
-| API Layer     | NestJS / FastAPI / Spring Boot | 🔍 검토 중 |
-| Message Queue | RabbitMQ                       | ✅ 확정    |
-| Worker        | Python 3.12 + Celery           | ✅ 확정    |
-| Database      | PostgreSQL                     | ✅ 확정    |
-| Storage       | MinIO (S3 호환)                | ✅ 확정    |
+| 카테고리      | 기술                 | 상태    |
+| ------------- | -------------------- | ------- |
+| API Layer     | FastAPI              | ✅ 확정 |
+| Message Queue | RabbitMQ             | ✅ 확정 |
+| Worker        | Python 3.12 + Celery | ✅ 확정 |
+| Database      | PostgreSQL           | ✅ 확정 |
+| Storage       | MinIO (S3 호환)      | ✅ 확정 |
 
 ## 프로젝트 구조
 
@@ -72,7 +73,8 @@ src/
 ├── constants/        # 상수 정의
 ├── features/         # 도메인 기능 모듈
 │   ├── TeapotDemo/   # Three.js 학습 예제
-│   └── CADViewer/    # DXF 파일 3D 뷰어
+│   ├── CadViewer/    # DXF 파일 3D 뷰어
+│   └── WorkerViewer/ # glTF/glb 3D 뷰어
 ├── hooks/            # 전역 커스텀 훅
 ├── locales/          # 다국어 (i18n)
 ├── pages/            # 페이지 컴포넌트
@@ -144,10 +146,11 @@ npm run test:coverage
 - **카메라 제어**: OrbitControls 기본 컨트롤
 - **CAD Viewer MVP**: DXF 파일 업로드/파싱
 - **파일 검증**: 타입/크기 검증 (20MB 제한)
-- **엔티티 확장**: LINE, ARC, CIRCLE, POLYLINE/LWPOLYLINE 지원
+- **엔티티 확장**: LINE, ARC, CIRCLE, POLYLINE/LWPOLYLINE, HATCH 지원
 - **레이어 제어**: 레이어별 표시/숨김, DXF 색상 매핑
 - **성능 최적화**: Geometry 머징, WebWorker, LOD
-- **단위 테스트**: Vitest 85개 테스트 (utils 커버리지 98%)
+- **Worker Viewer**: glTF/glb 파일 3D 렌더링
+- **단위 테스트**: Vitest 167개 테스트 (utils 커버리지 98%)
 
 ### 개발 예정
 
@@ -170,4 +173,4 @@ Private Project © [개쿠](https://javaoop.tistory.com)
 
 ---
 
-> **Note**: 이 프로젝트는 활발히 개발 중입니다. Phase 2A 완료 (2025-12-03), ADR-002/003 승인 완료 (2025-12-10). Phase 3 백엔드 통합이 진행될 예정입니다.
+> **Note**: 이 프로젝트는 활발히 개발 중입니다. Phase 2.1 진행중 (85%), ADR-002/003/004 승인 완료 (2025-12-12). Phase 3 백엔드 통합이 진행될 예정입니다.

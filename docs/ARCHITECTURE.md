@@ -1,7 +1,7 @@
 # Architecture
 
-> **Version**: 0.1.5
-> **Last Updated**: 2025-12-10
+> **Version**: 0.1.7
+> **Last Updated**: 2025-12-18
 
 CAD Viewer 프로젝트의 시스템 아키텍처와 패키지 구조를 설명합니다.
 
@@ -87,7 +87,7 @@ Teapot Demo는 CAD Viewer의 핵심 패턴을 학습하기 위한 예제입니�
 └─────────────────────────────────────────────────────────────────┘
                               ↓ 패턴 재사용
 ┌─────────────────────────────────────────────────────────────────┐
-│  CAD Viewer (Phase 2A 완료)                                      │
+│  CAD Viewer (Phase 2.1 완료)                                     │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │   DXF 업로드  →  Parser  →  Geometry  →  Mesh  →  Scene        │
@@ -105,13 +105,13 @@ Teapot Demo는 CAD Viewer의 핵심 패턴을 학습하기 위한 예제입니�
 | OrbitControls        | 동일                        | 카메라 제어        |
 | React Three Fiber    | 동일                        | 렌더링 프레임워크  |
 
-> **참고**: Teapot Demo 상세 구현은 [1.5_TEAPOT_DEMO.md](./phases/01-Foundation/1.5_TEAPOT_DEMO.md) 참조
+> **참고**: Teapot Demo 상세 구현은 [1.2_THREEJS_DEMO_TEAPOT.md](./phases/01-Foundation/1.2_THREEJS_DEMO_TEAPOT.md) 참조
 
 ---
 
 ## 메시지 큐 아키텍처
 
-> **결정**: RabbitMQ 선택 ([ADR-002](./adr/002_QUEUE_ALTERNATIVES_COMPARISON.md) 승인 완료)
+> **결정**: RabbitMQ 선택 ([ADR-003](./adr/003_QUEUE_ALTERNATIVES_COMPARISON.md) 승인 완료)
 
 ### 선택 근거
 
@@ -153,13 +153,13 @@ Teapot Demo는 CAD Viewer의 핵심 패턴을 학습하기 위한 예제입니�
 2. **Outbox Pattern**: 트랜잭션 원자성 보장
 3. **Dead Letter Queue**: 실패 메시지 격리 및 재처리
 
-> **상세 문서**: [ADR-002](./adr/002_QUEUE_ALTERNATIVES_COMPARISON.md)
+> **상세 문서**: [ADR-003](./adr/003_QUEUE_ALTERNATIVES_COMPARISON.md)
 
 ---
 
 ## Python Worker 아키텍처
 
-> **결정**: Python 3.12 + Celery + prefork pool ([ADR-003](./adr/003_PYTHON_WORKER_STACK.md) 승인 완료)
+> **결정**: Python 3.12 + Celery + prefork pool ([ADR-004](./adr/004_PYTHON_WORKER_STACK.md) 승인 완료)
 
 ### Worker 분리 구조
 
@@ -177,7 +177,7 @@ Teapot Demo는 CAD Viewer의 핵심 패턴을 학습하기 위한 예제입니�
 | Worker Pool | prefork | GIL 우회 |
 | 모니터링    | Flower  | >=2.0    |
 
-> **상세 문서**: [ADR-003](./adr/003_PYTHON_WORKER_STACK.md)
+> **상세 문서**: [ADR-004](./adr/004_PYTHON_WORKER_STACK.md)
 
 ---
 
@@ -221,8 +221,8 @@ src/
 │   │   ├── constants.ts
 │   │   ├── types.ts
 │   │   └── index.ts
-│   └── CADViewer/         # DXF 파일 3D 뷰어 (Phase 2A 완료)
-│       ├── components/    # CADScene, CADMesh, FileUpload, LayerPanel
+│   └── CadViewer/         # DXF 파일 3D 뷰어 (Phase 2.1 진행중)
+│       ├── components/    # CadScene, CadMesh, FileUpload, LayerPanel
 │       ├── hooks/         # useDXFParser, useDXFWorker
 │       │   └── __tests__/ # useDXFParser.test.ts
 │       ├── utils/         # dxfToGeometry, validators
@@ -242,7 +242,7 @@ src/
 ├── pages/                 # 페이지 컴포넌트
 │   ├── Home/              # 홈 페이지
 │   ├── TeapotDemo/        # Teapot 데모 페이지
-│   └── CADViewer/         # CAD 뷰어 페이지
+│   └── CadViewer/         # CAD 뷰어 페이지
 │
 ├── routes/                # 라우팅
 │   └── root.tsx
@@ -307,12 +307,14 @@ tests/                     # 테스트 관련 파일 (배포 번들 제외)
 
 ## Changelog (변경 이력)
 
-| 버전  | 날짜       | 변경 내용                                            |
-| ----- | ---------- | ---------------------------------------------------- |
-| 0.1.5 | 2025-12-10 | Python Worker 아키텍처 섹션 추가 (ADR-003 승인 반영) |
-| 0.1.4 | 2025-12-08 | 메시지 큐 아키텍처 섹션 추가 (ADR-002 승인 반영)     |
-| 0.1.3 | 2025-12-04 | 삭제된 PHASE_DEV_DOC_GUIDE.md 참조 제거              |
-| 0.1.2 | 2025-12-03 | Phase 2A 완료 반영, CADViewer 테스트 디렉토리 추가   |
-| 0.1.1 | 2025-12-02 | Phase개발 템플릿 개발완료                            |
-| 0.1.0 | 2025-12-01 | 아키텍처 문서 업데이트, CAD Viewer 기능 추가         |
-| 0.0.0 | 2025-11-28 | 초기 버전, 로드맵/아키텍처/깃컨벤션 문서가이드 정리  |
+| 버전  | 날짜       | 변경 내용                                                             |
+| ----- | ---------- | --------------------------------------------------------------------- |
+| 0.1.7 | 2025-12-18 | CadViewer 폴더명 대소문자 수정, Phase 2.1 상태 동기화                 |
+| 0.1.6 | 2025-12-16 | 깨진 링크 수정 (1.2_TEAPOT_DEMO→THREEJS_DEMO_TEAPOT, ADR-003→ADR-004) |
+| 0.1.5 | 2025-12-10 | Python Worker 아키텍처 섹션 추가 (ADR-003 승인 반영)                  |
+| 0.1.4 | 2025-12-08 | 메시지 큐 아키텍처 섹션 추가 (ADR-002 승인 반영)                      |
+| 0.1.3 | 2025-12-04 | 삭제된 PHASE_DEV_DOC_GUIDE.md 참조 제거                               |
+| 0.1.2 | 2025-12-03 | Phase 2.1 완료 반영, CADViewer 테스트 디렉토리 추가                   |
+| 0.1.1 | 2025-12-02 | Phase개발 템플릿 개발완료                                             |
+| 0.1.0 | 2025-12-01 | 아키텍처 문서 업데이트, CAD Viewer 기능 추가                          |
+| 0.0.0 | 2025-11-28 | 초기 버전, 로드맵/아키텍처/깃컨벤션 문서가이드 정리                   |

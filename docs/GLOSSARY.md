@@ -1,7 +1,7 @@
 # Glossary
 
-> **Version**: 0.0.3
-> **Last Updated**: 2025-12-10
+> **Version**: 0.0.4
+> **Last Updated**: 2025-12-18
 
 CAD Viewer 프로젝트에서 사용되는 용어 및 약어 정의
 
@@ -143,6 +143,9 @@ CAD Viewer 프로젝트에서 사용되는 용어 및 약어 정의
 | **Vector3**           | Three.js 3차원 벡터 (x, y, z)                          |
 | **EllipseCurve**      | Three.js 타원/원호 곡선 생성 클래스                    |
 | **Bounding Box**      | 3D 객체를 감싸는 최소 직육면체 경계                    |
+| **HATCH**             | DXF 영역 채우기 엔티티 (Solid Fill, Pattern Fill)      |
+| **RenderMode**        | 3D 렌더링 모드 (wireframe/solid/pattern)               |
+| **ShapeGeometry**     | Three.js 2D Shape에서 3D 지오메트리 생성 클래스        |
 
 ---
 
@@ -215,6 +218,7 @@ CAD Viewer 프로젝트에서 사용되는 용어 및 약어 정의
 
 | 버전  | 날짜       | 변경 내용                                                                                              |
 | ----- | ---------- | ------------------------------------------------------------------------------------------------------ |
+| 0.0.4 | 2025-12-18 | Phase 2.1.3 HATCH 관련 용어 추가 (HATCH, RenderMode, ShapeGeometry)                                    |
 | 0.0.3 | 2025-12-10 | ADR-003 승인 반영 - 신규 용어 추가 (uv, Flower, structlog)                                             |
 | 0.0.2 | 2025-12-04 | 삭제된 PHASE_DEV_DOC_GUIDE.md 참조 제거, ADR-002/ADR-003 용어집 통합 (백엔드 16개, 빌드/개발 도구 3개) |
 | 0.0.1 | 2025-12-02 | Phase개발 템플릿 개발완료                                                                              |
