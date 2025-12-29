@@ -8,10 +8,14 @@
 export { ToggleControl } from './ToggleControl';
 export { Button } from './Button';
 export { Heading, Text, Label } from './Typography';
-export { FileUpload } from './FileUpload';
+export { DropZone } from './DropZone';
+export { ViewerErrorBoundary } from './ViewerErrorBoundary';
+export { PanelErrorBoundary } from './PanelErrorBoundary';
+export { LoadingSpinner } from './LoadingSpinner';
 
 // Constants
-export { CHECKBOX_STYLES } from './constants';
+export { ACCENT_CLASSES } from './constants';
+export type { AccentColor } from './constants';
 
 // Types (외부 사용 타입만 export)
-export type { FileUploadConfig, FileUploadMessages } from './FileUpload';
+export type { DropZoneProps, DropZoneRenderProps } from './DropZone';

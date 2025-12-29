@@ -2,35 +2,33 @@
  * ViewerActionButtons - 뷰어 액션 버튼 컴포넌트
  *
  * Reset(뷰 리셋)과 Clear(파일/모델 삭제) 버튼을 제공
+ *
+ * @param props - 컴포넌트 속성
+ * @param props.onReset - 리셋 버튼 클릭 핸들러
+ * @param props.onClear - 클리어 버튼 클릭 핸들러 (선택, 없으면 버튼 숨김)
+ * @param props.resetLabel - 리셋 버튼 라벨 (기본: 'Reset')
+ * @param props.clearLabel - 클리어 버튼 라벨 (기본: 'Clear')
+ * @param props.resetIcon - 리셋 아이콘 타입 ('rotate' | 'home')
+ *
+ * @example
+ * ```tsx
+ * <ViewerActionButtons
+ *   onReset={handleReset}
+ *   onClear={handleClear}
+ *   resetIcon="rotate"
+ * />
+ * ```
  */
 
 import { memo } from 'react';
 
-import { Home, RotateCcw, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/Common';
 
-import { DEFAULT_LABELS } from './constants';
+import { DEFAULT_LABELS, RESET_ICONS } from './constants';
 
-/** ViewerActionButtons Props */
-interface ViewerActionButtonsProps {
-    /** 리셋 핸들러 */
-    onReset: () => void;
-    /** 클리어 핸들러 (없으면 클리어 버튼 숨김) */
-    onClear?: (() => void) | undefined;
-    /** 리셋 버튼 라벨 */
-    resetLabel?: string;
-    /** 클리어 버튼 라벨 */
-    clearLabel?: string;
-    /** 리셋 아이콘 타입 */
-    resetIcon?: 'rotate' | 'home';
-}
-
-/** 리셋 아이콘 매핑 */
-const RESET_ICONS = {
-    rotate: RotateCcw,
-    home: Home,
-} as const;
+import type { ViewerActionButtonsProps } from './types';
 
 function ViewerActionButtonsComponent({
     onReset,

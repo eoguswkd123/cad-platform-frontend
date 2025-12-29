@@ -1,7 +1,7 @@
 # Architecture
 
-> **Version**: 0.1.7
-> **Last Updated**: 2025-12-18
+> **Version**: 0.1.8
+> **Last Updated**: 2025-12-29
 
 CAD Viewer 프로젝트의 시스템 아키텍처와 패키지 구조를 설명합니다.
 
@@ -203,11 +203,17 @@ src/
 ├── assets/                # 정적 리소스
 │
 ├── components/            # 공통 컴포넌트
+│   ├── Common/            # 공통 UI (DropZone, LoadingSpinner, ErrorBoundary)
+│   ├── FilePanel/         # 파일 업로드 패널 (FileUploadBox, SampleList, UrlInput)
+│   ├── FilePanelViewer/   # 파일 패널 컴포지트 래퍼
+│   ├── SceneCanvasViewer/ # 3D 씬 컴포지트 래퍼
+│   ├── ControlPanel/      # 뷰어 제어 패널
 │   └── Layout/            # MainLayout, SideBar, Footer
 │
 ├── config/                # 전역 설정
 │   ├── index.ts           # APP, ENV 설정
-│   └── api.ts             # API 설정
+│   ├── api.ts             # API 설정
+│   └── urlSecurity.ts     # URL 보안 설정 (SSRF 방지)
 │
 ├── constants/             # 상수
 │   ├── app.ts             # 앱 상수
@@ -222,22 +228,31 @@ src/
 │   │   ├── types.ts
 │   │   └── index.ts
 │   └── CadViewer/         # DXF 파일 3D 뷰어 (Phase 2.1 진행중)
-│       ├── components/    # CadScene, CadMesh, FileUpload, LayerPanel
-│       ├── hooks/         # useDXFParser, useDXFWorker
-│       │   └── __tests__/ # useDXFParser.test.ts
-│       ├── utils/         # dxfToGeometry, validators
-│       │   └── __tests__/ # dxfToGeometry.test.ts, validators.test.ts
-│       ├── workers/       # WebWorker (대용량 파일 파싱)
+│       ├── components/    # CadScene, CadMesh, LayerPanel
+│       ├── hooks/         # useDXFParser, useDXFWorker, useDxfLoader
+│       │   └── __tests__/ # useDXFParser.test.ts, useDxfLoader.test.ts
+│       ├── services/      # WebWorker 및 파싱 로직
+│       │   ├── dxfParser.worker.ts  # DXF 파싱 워커
+│       │   ├── entityParsers.ts     # 엔티티별 파싱 로직
+│       │   └── entityMath.ts        # 기하학 계산 유틸
+│       ├── types/         # 타입 정의 (구조화됨)
+│       │   ├── dxfEntity/           # DXF 엔티티 타입 (base, library, parsed)
+│       │   └── dxfWorkerMsg/        # Worker 메시지 타입
+│       ├── utils/         # dxfToGeometry, dxfSamples
+│       │   └── __tests__/ # dxfToGeometry.test.ts
 │       ├── constants.ts
-│       ├── types.ts
 │       └── index.ts
 │
 ├── hooks/                 # 전역 훅
+│   ├── useMobileDrawer.ts # 모바일 드로어 상태
+│   ├── useSceneControls.ts # 3D 씬 제어
+│   ├── useUrlInput.ts     # URL 입력 검증
 │   └── index.ts
 │
-├── locales/               # 다국어
-│   ├── ko.json
-│   └── en.json
+├── locales/               # 다국어 (TypeScript)
+│   ├── ko.ts              # 한국어 메시지
+│   ├── en.ts              # 영어 메시지
+│   └── index.ts           # 통합 export
 │
 ├── pages/                 # 페이지 컴포넌트
 │   ├── Home/              # 홈 페이지
@@ -260,36 +275,105 @@ src/
 │   ├── menu.ts            # 메뉴 타입
 │   └── index.ts
 │
-└── utils/                 # 순수 함수 (React 없음, 10줄 이하)
+└── utils/                 # 순수 함수 및 유틸리티
+    ├── fileValidator.ts   # 파일 검증 (확장자, 크기, magic bytes)
+    ├── urlValidator.ts    # URL 검증 (SSRF 방지)
+    ├── errorClassifier.ts # 에러 분류
+    ├── errorFormatter.ts  # 에러 메시지 포맷팅
     └── index.ts
 
 tests/                     # 테스트 관련 파일 (배포 번들 제외)
-├── fixtures/              # 테스트용 데이터
-│   └── dxf/               # DXF 테스트 파일
+├── mocks/                 # 테스트 모킹
+│   ├── dxf-parser/        # DXF 파서 목 (fixtures, config)
+│   ├── three.tsx          # Three.js/R3F 목
+│   └── worker.ts          # WebWorker 목
+├── integration/           # 통합 테스트
+│   └── dxf-pipeline.test.ts
+├── setup/                 # 테스트 설정
 └── scripts/               # 테스트/성능 측정 스크립트
 ```
 
 ## 레이어별 역할
 
-| 레이어             | 역할                                                 | 의존성               |
-| ------------------ | ---------------------------------------------------- | -------------------- |
-| `api/`             | API 통신 레이어 (Axios 인스턴스)                     | config               |
-| `assets/`          | 정적 리소스 (이미지, 폰트)                           | -                    |
-| `components/`      | 공통 재사용 UI (Layout)                              | -                    |
-| `config/`          | 전역 설정 (APP, ENV, API)                            | -                    |
-| `constants/`       | 상수 정의 (routes, menu, app)                        | -                    |
-| `features/`        | 도메인 기능 모듈 (components, hooks, data)           | stores               |
-| `features/*/data/` | 도메인 정적 데이터셋 (형상, 샘플 데이터)             | types만              |
-| `hooks/`           | 전역 훅                                              | stores               |
-| `locales/`         | 다국어 리소스 (ko, en)                               | -                    |
-| `pages/`           | 페이지 조합 (라우트별)                               | features, components |
-| `routes/`          | 라우팅 설정                                          | pages                |
-| `services/`        | 복잡한 로직 (React 없음, 클래스/엔진, 10줄 이상)     | types만              |
-| `stores/`          | Zustand 전역 상태                                    | types만              |
-| `styles/`          | 전역 스타일 (CSS)                                    | -                    |
-| `types/`           | 타입/인터페이스 정의                                 | -                    |
-| `utils/`           | 순수 함수 (React 없음, 10줄 이하)                    | -                    |
-| `tests/`           | 테스트 데이터(fixtures) 및 스크립트 (배포 번들 제외) | -                    |
+| 레이어                 | 역할                                                  | 의존성               |
+| ---------------------- | ----------------------------------------------------- | -------------------- |
+| `api/`                 | API 통신 레이어 (Axios 인스턴스)                      | config               |
+| `assets/`              | 정적 리소스 (이미지, 폰트)                            | -                    |
+| `components/`          | 공통 재사용 UI (Layout)                               | -                    |
+| `config/`              | 전역 설정 (APP, ENV, API)                             | -                    |
+| `constants/`           | 상수 정의 (routes, menu, app)                         | -                    |
+| `features/`            | 도메인 기능 모듈 (components, hooks, services, types) | stores               |
+| `features/*/services/` | 도메인 서비스 (Worker, 파싱 로직)                     | types만              |
+| `hooks/`               | 전역 훅                                               | stores               |
+| `locales/`             | 다국어 리소스 TypeScript (ko.ts, en.ts)               | -                    |
+| `pages/`               | 페이지 조합 (라우트별)                                | features, components |
+| `routes/`              | 라우팅 설정                                           | pages                |
+| `services/`            | 복잡한 로직 (React 없음, 클래스/엔진, 10줄 이상)      | types만              |
+| `stores/`              | Zustand 전역 상태                                     | types만              |
+| `styles/`              | 전역 스타일 (CSS)                                     | -                    |
+| `types/`               | 타입/인터페이스 정의                                  | -                    |
+| `utils/`               | 순수 함수 및 유틸리티 (검증, 에러 처리)               | -                    |
+| `tests/`               | 테스트 데이터(fixtures) 및 스크립트 (배포 번들 제외)  | -                    |
+
+---
+
+## 컴포넌트 아키텍처 패턴
+
+### Composite Component 패턴
+
+FilePanelViewer, SceneCanvasViewer, ControlPanelViewer는 여러 하위 컴포넌트를 통합하는 컴포지트 패턴을 사용합니다.
+
+```
+FilePanelViewer (composite)
+├── FileUploadBox      # 파일 드래그앤드롭
+├── SampleList         # 서버 샘플 목록
+└── UrlInput           # URL 입력
+
+SceneCanvasViewer (composite)
+└── R3F Canvas         # 3D 렌더링 캔버스
+
+ControlPanelViewer (composite)
+├── ViewerActionButtons # 액션 버튼
+├── GridToggle         # 그리드 토글
+└── SpeedSlider        # 속도 조절
+```
+
+### 중앙화된 Validation 아키텍처
+
+파일 및 URL 검증 로직을 `src/utils/`로 중앙화하여 재사용성과 보안을 강화합니다.
+
+| 유틸리티             | 역할                                     |
+| -------------------- | ---------------------------------------- |
+| `fileValidator.ts`   | 파일 확장자, 크기, magic bytes 검증      |
+| `urlValidator.ts`    | URL 형식, 허용 호스트, SSRF 방지 검증    |
+| `errorClassifier.ts` | 에러 유형 분류 (network, parser, worker) |
+| `errorFormatter.ts`  | 사용자 친화적 에러 메시지 생성           |
+
+### URL Security (SSRF 방지)
+
+`src/config/urlSecurity.ts`에서 허용된 호스트를 관리합니다.
+
+```typescript
+// 기본 허용 호스트
+BASE_ALLOWED_HOSTS = [
+  'localhost', '127.0.0.1',           // 개발 환경
+  'github.com', 'raw.githubusercontent.com',  // GitHub
+  'gitlab.com', 'bitbucket.org'       // 기타 Git 호스팅
+]
+
+// 환경별 정책
+- Production: HTTPS만 허용
+- Development: HTTP 허용
+```
+
+### ErrorBoundary 계층
+
+에러 경계를 계층화하여 에러 격리와 복구를 지원합니다.
+
+| ErrorBoundary         | 역할                    | 위치             |
+| --------------------- | ----------------------- | ---------------- |
+| `ViewerErrorBoundary` | 3D 뷰어 에러 격리       | 각 뷰어 컴포넌트 |
+| `PanelErrorBoundary`  | 패널 컴포넌트 에러 격리 | FilePanel 등     |
 
 ---
 
@@ -307,14 +391,15 @@ tests/                     # 테스트 관련 파일 (배포 번들 제외)
 
 ## Changelog (변경 이력)
 
-| 버전  | 날짜       | 변경 내용                                                             |
-| ----- | ---------- | --------------------------------------------------------------------- |
-| 0.1.7 | 2025-12-18 | CadViewer 폴더명 대소문자 수정, Phase 2.1 상태 동기화                 |
-| 0.1.6 | 2025-12-16 | 깨진 링크 수정 (1.2_TEAPOT_DEMO→THREEJS_DEMO_TEAPOT, ADR-003→ADR-004) |
-| 0.1.5 | 2025-12-10 | Python Worker 아키텍처 섹션 추가 (ADR-003 승인 반영)                  |
-| 0.1.4 | 2025-12-08 | 메시지 큐 아키텍처 섹션 추가 (ADR-002 승인 반영)                      |
-| 0.1.3 | 2025-12-04 | 삭제된 PHASE_DEV_DOC_GUIDE.md 참조 제거                               |
-| 0.1.2 | 2025-12-03 | Phase 2.1 완료 반영, CADViewer 테스트 디렉토리 추가                   |
-| 0.1.1 | 2025-12-02 | Phase개발 템플릿 개발완료                                             |
-| 0.1.0 | 2025-12-01 | 아키텍처 문서 업데이트, CAD Viewer 기능 추가                          |
-| 0.0.0 | 2025-11-28 | 초기 버전, 로드맵/아키텍처/깃컨벤션 문서가이드 정리                   |
+| 버전  | 날짜       | 변경 내용                                                                                                          |
+| ----- | ---------- | ------------------------------------------------------------------------------------------------------------------ |
+| 0.1.8 | 2025-12-29 | 코드 동기화: CadViewer services/types 구조, Composite 패턴, Validation 아키텍처, locales TS 전환, 새 컴포넌트 반영 |
+| 0.1.7 | 2025-12-18 | CadViewer 폴더명 대소문자 수정, Phase 2.1 상태 동기화                                                              |
+| 0.1.6 | 2025-12-16 | 깨진 링크 수정 (1.2_TEAPOT_DEMO→THREEJS_DEMO_TEAPOT, ADR-003→ADR-004)                                              |
+| 0.1.5 | 2025-12-10 | Python Worker 아키텍처 섹션 추가 (ADR-003 승인 반영)                                                               |
+| 0.1.4 | 2025-12-08 | 메시지 큐 아키텍처 섹션 추가 (ADR-002 승인 반영)                                                                   |
+| 0.1.3 | 2025-12-04 | 삭제된 PHASE_DEV_DOC_GUIDE.md 참조 제거                                                                            |
+| 0.1.2 | 2025-12-03 | Phase 2.1 완료 반영, CADViewer 테스트 디렉토리 추가                                                                |
+| 0.1.1 | 2025-12-02 | Phase개발 템플릿 개발완료                                                                                          |
+| 0.1.0 | 2025-12-01 | 아키텍처 문서 업데이트, CAD Viewer 기능 추가                                                                       |
+| 0.0.0 | 2025-11-28 | 초기 버전, 로드맵/아키텍처/깃컨벤션 문서가이드 정리                                                                |

@@ -10,6 +10,7 @@ import { Home, AlertTriangle, FileQuestion } from 'lucide-react';
 import { Link, useRouteError, isRouteErrorResponse } from 'react-router-dom';
 
 import { ROUTES } from '@/constants';
+import { MESSAGES } from '@/locales';
 
 export default function ErrorPage(): JSX.Element {
     const error = useRouteError();
@@ -31,21 +32,23 @@ export default function ErrorPage(): JSX.Element {
 
                 {/* 에러 코드 */}
                 <h1 className="mb-2 text-6xl font-bold text-gray-800">
-                    {is404 ? '404' : '오류'}
+                    {is404
+                        ? MESSAGES.error.code404
+                        : MESSAGES.error.codeGeneric}
                 </h1>
 
                 {/* 에러 메시지 */}
                 <h2 className="mb-4 text-2xl font-semibold text-gray-700">
                     {is404
-                        ? '페이지를 찾을 수 없습니다'
-                        : '문제가 발생했습니다'}
+                        ? MESSAGES.error.title404
+                        : MESSAGES.error.titleGeneric}
                 </h2>
 
                 {/* 상세 설명 */}
                 <p className="mb-8 max-w-md text-gray-500">
                     {is404
-                        ? '요청하신 페이지가 존재하지 않거나 이동되었을 수 있습니다.'
-                        : '예상치 못한 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'}
+                        ? MESSAGES.error.description404
+                        : MESSAGES.error.descriptionGeneric}
                 </p>
 
                 {/* 홈으로 이동 버튼 */}
@@ -54,7 +57,7 @@ export default function ErrorPage(): JSX.Element {
                     className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                 >
                     <Home className="h-5 w-5" />
-                    홈으로 돌아가기
+                    {MESSAGES.error.backToHome}
                 </Link>
             </div>
         </div>

@@ -1,11 +1,13 @@
 /**
  * TeapotScene Component
  * Teapot 데모 최상위 Scene 래퍼
+ *
+ * @see {@link useSceneControls} - 공통 Scene 컨트롤 훅 사용
  */
-import { useState, useCallback } from 'react';
-
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
+
+import { useSceneControls } from '@/hooks/useSceneControls';
 
 import {
     DEFAULT_TEAPOT_CONFIG,
@@ -20,21 +22,16 @@ import { TeapotMesh } from './TeapotMesh';
 import type { TeapotConfig } from '../types';
 
 export function TeapotScene() {
-    const [config, setConfig] = useState<TeapotConfig>(DEFAULT_TEAPOT_CONFIG);
-
-    const handleConfigChange = useCallback(
-        (newConfig: Partial<TeapotConfig>) => {
-            setConfig((prev) => ({ ...prev, ...newConfig }));
-        },
-        []
-    );
+    // 공통 훅 사용 (CadScene, WorkerScene과 동일한 패턴)
+    const { config, controlsRef, handleConfigChange } =
+        useSceneControls<TeapotConfig>(DEFAULT_TEAPOT_CONFIG);
 
     return (
-        <div className="relative h-full w-full">
+        <div className="relative h-full w-full overflow-hidden">
             {/* 3D Canvas */}
             <Canvas
                 shadows
-                className="bg-gradient-to-b from-gray-900 to-gray-800"
+                className="h-full w-full bg-gradient-to-b from-gray-900 to-gray-800"
             >
                 <PerspectiveCamera
                     makeDefault
@@ -42,6 +39,7 @@ export function TeapotScene() {
                     fov={TEAPOT_CAMERA_CONFIG.fov}
                 />
                 <OrbitControls
+                    ref={controlsRef}
                     enableDamping={TEAPOT_ORBIT_CONTROLS_CONFIG.enableDamping}
                     dampingFactor={TEAPOT_ORBIT_CONTROLS_CONFIG.dampingFactor}
                     minDistance={TEAPOT_ORBIT_CONTROLS_CONFIG.minDistance}
@@ -71,16 +69,18 @@ export function TeapotScene() {
                     autoRotate={config.autoRotate}
                 />
 
-                {/* 바닥 그리드 (시각적 참조용) */}
-                <gridHelper
-                    args={[
-                        TEAPOT_GRID_CONFIG.size,
-                        TEAPOT_GRID_CONFIG.divisions,
-                        TEAPOT_GRID_CONFIG.colorCenterLine,
-                        TEAPOT_GRID_CONFIG.colorGrid,
-                    ]}
-                    rotation={[0, 0, 0]}
-                />
+                {/* 바닥 그리드 (config.showGrid로 토글 가능) */}
+                {config.showGrid && (
+                    <gridHelper
+                        args={[
+                            TEAPOT_GRID_CONFIG.size,
+                            TEAPOT_GRID_CONFIG.divisions,
+                            TEAPOT_GRID_CONFIG.colorCenterLine,
+                            TEAPOT_GRID_CONFIG.colorGrid,
+                        ]}
+                        rotation={[0, 0, 0]}
+                    />
+                )}
             </Canvas>
 
             {/* HTML Overlay 컨트롤 */}

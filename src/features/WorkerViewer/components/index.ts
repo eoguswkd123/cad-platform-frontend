@@ -6,5 +6,3 @@
 
 export { WorkerScene } from './WorkerScene';
 export { WorkerMesh } from './WorkerMesh';
-export { ModelSelector } from './ModelSelector';
-export { WorkerErrorBoundary } from './WorkerErrorBoundary';

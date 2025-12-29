@@ -1,7 +1,7 @@
 # Glossary
 
-> **Version**: 0.0.4
-> **Last Updated**: 2025-12-18
+> **Version**: 0.0.5
+> **Last Updated**: 2025-12-29
 
 CAD Viewer 프로젝트에서 사용되는 용어 및 약어 정의
 
@@ -41,28 +41,30 @@ CAD Viewer 프로젝트에서 사용되는 용어 및 약어 정의
 
 ## 프론트엔드
 
-| 용어                     | 정의                                               |
-| ------------------------ | -------------------------------------------------- |
-| **R3F**                  | React Three Fiber - Three.js의 React 선언적 렌더러 |
-| **Three.js**             | JavaScript 3D 라이브러리                           |
-| **Zustand**              | React 경량 상태 관리 라이브러리                    |
-| **Vite**                 | 차세대 프론트엔드 빌드 도구                        |
-| **OrbitControls**        | Three.js 카메라 컨트롤러 (회전, 줌, 패닝)          |
-| **LOD**                  | Level of Detail - 거리별 상세도 조절               |
-| **Frustum Culling**      | 카메라 시야 밖 객체 렌더링 제외 기법               |
-| **Instancing**           | GPU에서 동일 객체 반복 렌더링 최적화               |
-| **React Hook Form**      | React 폼 상태 관리 라이브러리                      |
-| **TanStack Query**       | React 비동기 상태 관리 라이브러리 (구 React Query) |
-| **Axios**                | Promise 기반 HTTP 클라이언트                       |
-| **Drei**                 | React Three Fiber 유틸리티 컴포넌트 모음           |
-| **Lucide React**         | React 아이콘 컴포넌트 라이브러리                   |
-| **Zod**                  | TypeScript-first 스키마 검증 라이브러리            |
-| **clsx**                 | 조건부 CSS 클래스명 생성 유틸리티                  |
-| **tailwind-merge**       | Tailwind CSS 클래스 병합 유틸리티                  |
-| **React Router**         | React 클라이언트 라우팅 라이브러리                 |
-| **Controlled Component** | React가 상태를 제어하는 폼 컴포넌트                |
-| **Import Alias**         | 모듈 경로 단축 설정 (@/ 등)                        |
-| **Barrel Export**        | index 파일에서 모든 내보내기 재수출 패턴           |
+| 용어                     | 정의                                                 |
+| ------------------------ | ---------------------------------------------------- |
+| **R3F**                  | React Three Fiber - Three.js의 React 선언적 렌더러   |
+| **Three.js**             | JavaScript 3D 라이브러리                             |
+| **Zustand**              | React 경량 상태 관리 라이브러리                      |
+| **Vite**                 | 차세대 프론트엔드 빌드 도구                          |
+| **OrbitControls**        | Three.js 카메라 컨트롤러 (회전, 줌, 패닝)            |
+| **LOD**                  | Level of Detail - 거리별 상세도 조절                 |
+| **Frustum Culling**      | 카메라 시야 밖 객체 렌더링 제외 기법                 |
+| **Instancing**           | GPU에서 동일 객체 반복 렌더링 최적화                 |
+| **React Hook Form**      | React 폼 상태 관리 라이브러리                        |
+| **TanStack Query**       | React 비동기 상태 관리 라이브러리 (구 React Query)   |
+| **Axios**                | Promise 기반 HTTP 클라이언트                         |
+| **Drei**                 | React Three Fiber 유틸리티 컴포넌트 모음             |
+| **Lucide React**         | React 아이콘 컴포넌트 라이브러리                     |
+| **Zod**                  | TypeScript-first 스키마 검증 라이브러리              |
+| **clsx**                 | 조건부 CSS 클래스명 생성 유틸리티                    |
+| **tailwind-merge**       | Tailwind CSS 클래스 병합 유틸리티                    |
+| **React Router**         | React 클라이언트 라우팅 라이브러리                   |
+| **Controlled Component** | React가 상태를 제어하는 폼 컴포넌트                  |
+| **Import Alias**         | 모듈 경로 단축 설정 (@/ 등)                          |
+| **Barrel Export**        | index 파일에서 모든 내보내기 재수출 패턴             |
+| **Composite Component**  | 여러 하위 컴포넌트를 통합하는 복합 컴포넌트 패턴     |
+| **ErrorBoundary**        | React 에러 경계 - 하위 트리 에러를 캐치하는 컴포넌트 |
 
 ---
 
@@ -211,6 +213,7 @@ CAD Viewer 프로젝트에서 사용되는 용어 및 약어 정의
 | **ClamAV**        | 오픈소스 악성코드 스캐너                              |
 | **Rate Limiting** | API 요청 횟수 제한                                    |
 | **Magic Bytes**   | 파일 헤더로 실제 파일 타입 검증                       |
+| **SSRF**          | Server-Side Request Forgery - 서버측 요청 위조 공격   |
 
 ---
 
@@ -218,6 +221,7 @@ CAD Viewer 프로젝트에서 사용되는 용어 및 약어 정의
 
 | 버전  | 날짜       | 변경 내용                                                                                              |
 | ----- | ---------- | ------------------------------------------------------------------------------------------------------ |
+| 0.0.5 | 2025-12-29 | 코드 동기화: Composite Component, ErrorBoundary, SSRF 용어 추가                                        |
 | 0.0.4 | 2025-12-18 | Phase 2.1.3 HATCH 관련 용어 추가 (HATCH, RenderMode, ShapeGeometry)                                    |
 | 0.0.3 | 2025-12-10 | ADR-003 승인 반영 - 신규 용어 추가 (uv, Flower, structlog)                                             |
 | 0.0.2 | 2025-12-04 | 삭제된 PHASE_DEV_DOC_GUIDE.md 참조 제거, ADR-002/ADR-003 용어집 통합 (백엔드 16개, 빌드/개발 도구 3개) |

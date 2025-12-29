@@ -1,7 +1,7 @@
 # 개발자 가이드
 
-> **Version**: 0.1.6
-> **Last Updated**: 2025-12-18
+> **Version**: 0.1.7
+> **Last Updated**: 2025-12-29
 
 프로젝트 개발 시 참고하는 가이드 문서
 
@@ -94,18 +94,18 @@ npm run validate
 
 ### 파일/폴더
 
-| 대상           | 규칙                 | 예시                                 |
-| -------------- | -------------------- | ------------------------------------ |
-| 컴포넌트       | PascalCase.tsx       | `CadScene.tsx`                       |
-| 훅             | use + camelCase.ts   | `useCADLoader.ts`                    |
-| 유틸리티       | camelCase.ts         | `format.ts`                          |
-| 타입           | camelCase.ts         | `cad.ts`                             |
-| 스토어         | camelCase + Store.ts | `cadStore.ts`                        |
-| 서비스         | camelCase.ts         | `syncEngine.ts`                      |
-| 상수           | camelCase.ts         | `app.ts`, `routes.ts`                |
-| 카테고리 폴더  | camelCase            | `components/`, `features/`, `hooks/` |
-| 기능/모듈 폴더 | PascalCase           | `CadViewer/`, `Layout/`, `Home/`     |
-| URL 경로       | kebab-case           | `/cad-viewer`, `/teapot-demo`        |
+| 대상           | 규칙                 | 예시                                  |
+| -------------- | -------------------- | ------------------------------------- |
+| 컴포넌트       | PascalCase.tsx       | `CadScene.tsx`                        |
+| 훅             | use + camelCase.ts   | `useDxfLoader.ts`, `useGltfLoader.ts` |
+| 유틸리티       | camelCase.ts         | `format.ts`                           |
+| 타입           | camelCase.ts         | `cad.ts`                              |
+| 스토어         | camelCase + Store.ts | `cadStore.ts`                         |
+| 서비스         | camelCase.ts         | `syncEngine.ts`                       |
+| 상수           | camelCase.ts         | `app.ts`, `routes.ts`                 |
+| 카테고리 폴더  | camelCase            | `components/`, `features/`, `hooks/`  |
+| 기능/모듈 폴더 | PascalCase           | `CadViewer/`, `Layout/`, `Home/`      |
+| URL 경로       | kebab-case           | `/cad-viewer`, `/teapot-demo`         |
 
 > **참고**: 폴더명(PascalCase)과 URL 경로(kebab-case)는 다른 규칙을 사용합니다.
 > 이는 코드 컨벤션(JavaScript/React)과 웹 표준(RFC 3986, SEO)의 관심사 분리 원칙입니다.
@@ -384,28 +384,34 @@ React Three Fiber(R3F) 기반 feature에서 컴포넌트는 **Canvas 내부/외�
 #### 구조 예시
 
 ```
-features/CADViewer/components/
-├── CADScene.tsx       ← Main Container (진입점)
-├── CADMesh.tsx        ← Canvas-internal (3D)
-├── CADControls.tsx    ← HTML Overlay
-├── FileUpload.tsx     ← HTML Overlay
+features/CadViewer/components/
+├── CadScene.tsx       ← Main Container (진입점)
+├── CadMesh.tsx        ← Canvas-internal (3D)
 ├── LayerPanel.tsx     ← HTML Overlay
 └── index.ts           ← Barrel export (계층 구조 문서화)
+
+components/                    ← 공통 컴포넌트 (뷰어에서 사용)
+├── Common/DropZone/           ← 드래그앤드롭 영역
+├── FilePanel/                 ← 파일 업로드 패널 (FileUploadBox, SampleList, UrlInput)
+├── FilePanelViewer/           ← 파일 패널 컴포지트 래퍼
+├── SceneCanvasViewer/         ← 3D 씬 컴포지트 래퍼
+└── ControlPanel/              ← 뷰어 제어 패널
 ```
 
 #### 계층 구조 다이어그램
 
 ```
-CADScene (Main Container)
-├── <Canvas>                    # 3D Context Boundary
-│   ├── <PerspectiveCamera />   # Canvas-internal
-│   ├── <OrbitControls />       # Canvas-internal
-│   ├── <CADMesh />             # Canvas-internal
-│   └── <gridHelper />          # Canvas-internal
-│
-├── <FileUpload />              # HTML Overlay (top-left)
-├── <CADControls />             # HTML Overlay (top-right)
-└── <LayerPanel />              # HTML Overlay (bottom-left)
+CadViewerPage (Page)
+├── <FilePanelViewer />        # 컴포지트 래퍼 (FileUploadBox, SampleList, UrlInput)
+├── <SceneCanvasViewer />      # 컴포지트 래퍼
+│   └── <CadScene />           # Main Container
+│       └── <Canvas>           # 3D Context Boundary
+│           ├── <PerspectiveCamera />   # Canvas-internal
+│           ├── <OrbitControls />       # Canvas-internal
+│           ├── <CadMesh />             # Canvas-internal
+│           └── <gridHelper />          # Canvas-internal
+├── <ControlPanelViewer />     # 제어 패널 컴포지트
+└── <LayerPanel />             # HTML Overlay (layer toggle)
 ```
 
 > **참고**: R3F에서 `<Canvas>` 내부는 Three.js 컨텍스트, 외부는 일반 React DOM입니다.
@@ -678,7 +684,7 @@ tests/                                # 공유 인프라
 npm run test                          # Vitest 테스트 실행
 npm run test:ui                       # Vitest UI 모드
 npm run test:coverage                 # 커버리지 리포트
-npm run test -- validators.test.ts    # 특정 파일
+npm run test -- useDxfLoader.test.ts  # 특정 파일
 npm run test -- --grep "validateFile" # 특정 패턴
 npm run test -- --run                 # 1회 실행 (watch 없이)
 ```
@@ -687,7 +693,7 @@ npm run test -- --run                 # 1회 실행 (watch 없이)
 
 | 테스트 유형           | 위치                       | 네이밍       | 예시                    |
 | --------------------- | -------------------------- | ------------ | ----------------------- |
-| **Unit** (순수 함수)  | `feature/__tests__/`       | `*.test.ts`  | `validators.test.ts`    |
+| **Unit** (순수 함수)  | `feature/__tests__/`       | `*.test.ts`  | `useDxfLoader.test.ts`  |
 | **Component** (React) | `feature/__tests__/`       | `*.test.tsx` | `CADScene.test.tsx`     |
 | **Hook**              | `feature/hooks/__tests__/` | `*.test.ts`  | `useDXFParser.test.ts`  |
 | **Integration**       | `tests/integration/`       | `*.test.tsx` | `cad-workflow.test.tsx` |
@@ -926,6 +932,7 @@ docs: README 업데이트
 
 | 버전  | 날짜       | 변경 내용                                                |
 | ----- | ---------- | -------------------------------------------------------- |
+| 0.1.7 | 2025-12-29 | 코드 동기화: 훅 예시, R3F 패턴, 테스트 예시 업데이트     |
 | 0.1.6 | 2025-12-18 | Quick Start 섹션 추가, TODO 섹션 삭제 (완료된 항목)      |
 | 0.1.5 | 2025-12-17 | Props 정의 위치 가이드 추가 (인라인 권장)                |
 | 0.1.4 | 2025-12-15 | R3F 컴포넌트 패턴 섹션 추가 (Canvas-internal vs Overlay) |

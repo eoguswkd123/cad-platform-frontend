@@ -3,12 +3,14 @@
  * Phase 3B.2: glTF/glb 3D 모델 뷰어 페이지
  */
 
-import { WorkerScene, WorkerErrorBoundary } from '@/features/WorkerViewer';
+import { ViewerErrorBoundary } from '@/components/Common';
+import { WorkerScene } from '@/features/WorkerViewer';
 
 export default function WorkerViewerPage() {
     return (
-        <div className="h-screen w-full">
-            <WorkerErrorBoundary
+        <div className="h-full w-full">
+            <ViewerErrorBoundary
+                viewerName="3D"
                 onError={(error) => {
                     // 추후 에러 추적 서비스 연동 가능
                     console.error(
@@ -18,7 +20,7 @@ export default function WorkerViewerPage() {
                 }}
             >
                 <WorkerScene />
-            </WorkerErrorBoundary>
+            </ViewerErrorBoundary>
         </div>
     );
 }

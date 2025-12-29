@@ -1,34 +1,26 @@
 /**
  * CAD Viewer - DXF Parser Hook
  * DXF 파일을 파싱하여 Three.js에서 사용할 수 있는 데이터로 변환
+ *
+ * @see {@link parseAllEntities} - 공유 엔티티 파서 (services/entityParsers.ts)
  */
 
 import { useState, useCallback } from 'react';
 
 import DxfParser from 'dxf-parser';
 
-import {
-    CAD_ERROR_MESSAGES,
-    aciToHex,
-    DEFAULT_LAYER_COLOR,
-} from '../constants';
+import { MESSAGES } from '@/locales';
+
+import { aciToHex, DEFAULT_LAYER_COLOR } from '../constants';
+import { parseAllEntities, getTotalEntityCount } from '../services';
 import { calculateBounds } from '../utils/dxfToGeometry';
 
 import type {
     ParsedCADData,
-    ParsedLine,
-    ParsedCircle,
-    ParsedArc,
-    ParsedPolyline,
-    ParsedHatch,
-    HatchBoundaryPath,
     LayerInfo,
     UploadError,
-    Point3D,
     DXFLibEntity,
-    DXFLibPoint,
     DXFLibLayer,
-    DXFLibHatchBoundary,
 } from '../types';
 
 interface UseDXFParserReturn {
@@ -71,165 +63,18 @@ export function useDXFParser(): UseDXFParserReturn {
                 throw new Error('Invalid DXF structure');
             }
 
-            // LINE 엔티티 추출
-            const lines: ParsedLine[] = (dxf.entities as DXFLibEntity[])
-                .filter((entity) => entity.type === 'LINE')
-                .map((entity) => {
-                    const start: Point3D = {
-                        x: entity.vertices?.[0]?.x ?? entity.start?.x ?? 0,
-                        y: entity.vertices?.[0]?.y ?? entity.start?.y ?? 0,
-                        z: entity.vertices?.[0]?.z ?? entity.start?.z ?? 0,
-                    };
-                    const end: Point3D = {
-                        x: entity.vertices?.[1]?.x ?? entity.end?.x ?? 0,
-                        y: entity.vertices?.[1]?.y ?? entity.end?.y ?? 0,
-                        z: entity.vertices?.[1]?.z ?? entity.end?.z ?? 0,
-                    };
-
-                    return {
-                        start,
-                        end,
-                        layer: entity.layer,
-                    };
-                });
-
-            // CIRCLE 엔티티 추출
-            const circles: ParsedCircle[] = (dxf.entities as DXFLibEntity[])
-                .filter((entity) => entity.type === 'CIRCLE')
-                .map((entity) => ({
-                    center: {
-                        x: entity.center?.x ?? 0,
-                        y: entity.center?.y ?? 0,
-                        z: entity.center?.z ?? 0,
-                    },
-                    radius: entity.radius ?? 1,
-                    layer: entity.layer,
-                }));
-
-            // ARC 엔티티 추출
-            const arcs: ParsedArc[] = (dxf.entities as DXFLibEntity[])
-                .filter((entity) => entity.type === 'ARC')
-                .map((entity) => ({
-                    center: {
-                        x: entity.center?.x ?? 0,
-                        y: entity.center?.y ?? 0,
-                        z: entity.center?.z ?? 0,
-                    },
-                    radius: entity.radius ?? 1,
-                    startAngle: entity.startAngle ?? 0,
-                    endAngle: entity.endAngle ?? 360,
-                    layer: entity.layer,
-                }));
-
-            // POLYLINE / LWPOLYLINE 엔티티 추출
-            const polylines: ParsedPolyline[] = (dxf.entities as DXFLibEntity[])
-                .filter(
-                    (entity) =>
-                        entity.type === 'LWPOLYLINE' ||
-                        entity.type === 'POLYLINE'
-                )
-                .map((entity) => {
-                    const vertices: Point3D[] = (entity.vertices ?? []).map(
-                        (v: DXFLibPoint) => ({
-                            x: v.x ?? 0,
-                            y: v.y ?? 0,
-                            z: v.z ?? 0,
-                        })
-                    );
-
-                    return {
-                        vertices,
-                        closed: entity.shape ?? false,
-                        layer: entity.layer,
-                    };
-                })
-                .filter(
-                    (polyline: ParsedPolyline) => polyline.vertices.length >= 2
-                );
-
-            // HATCH 엔티티 추출
-            const hatches: ParsedHatch[] = (dxf.entities as DXFLibEntity[])
-                .filter((entity) => entity.type === 'HATCH')
-                .map((entity) => {
-                    // 경계 경로 추출
-                    const boundaries: HatchBoundaryPath[] = [];
-
-                    if (entity.boundary && Array.isArray(entity.boundary)) {
-                        for (const b of entity.boundary as DXFLibHatchBoundary[]) {
-                            // 폴리라인 경계
-                            if (b.vertices && b.vertices.length >= 3) {
-                                boundaries.push({
-                                    type: 'polyline',
-                                    vertices: b.vertices.map(
-                                        (v: DXFLibPoint) => ({
-                                            x: v.x ?? 0,
-                                            y: v.y ?? 0,
-                                            z: v.z ?? 0,
-                                        })
-                                    ),
-                                    closed: true,
-                                });
-                            }
-                            // 원형 경계
-                            else if (
-                                b.center &&
-                                b.radius !== undefined &&
-                                b.startAngle === undefined
-                            ) {
-                                boundaries.push({
-                                    type: 'circle',
-                                    center: {
-                                        x: b.center.x ?? 0,
-                                        y: b.center.y ?? 0,
-                                        z: b.center.z ?? 0,
-                                    },
-                                    radius: b.radius,
-                                });
-                            }
-                            // 호형 경계
-                            else if (
-                                b.center &&
-                                b.radius !== undefined &&
-                                b.startAngle !== undefined
-                            ) {
-                                boundaries.push({
-                                    type: 'arc',
-                                    center: {
-                                        x: b.center.x ?? 0,
-                                        y: b.center.y ?? 0,
-                                        z: b.center.z ?? 0,
-                                    },
-                                    radius: b.radius,
-                                    startAngle: b.startAngle,
-                                    endAngle: b.endAngle ?? 360,
-                                });
-                            }
-                        }
-                    }
-
-                    const patternName = entity.patternName ?? 'SOLID';
-
-                    return {
-                        boundaries,
-                        patternName,
-                        isSolid:
-                            entity.solidFill === 1 ||
-                            patternName.toUpperCase() === 'SOLID',
-                        patternScale: entity.patternScale ?? 1,
-                        patternAngle: entity.patternAngle ?? 0,
-                        color: entity.colorIndex,
-                        layer: entity.layer,
-                    };
-                })
-                .filter((hatch: ParsedHatch) => hatch.boundaries.length > 0);
+            // 공유 파서를 사용하여 모든 엔티티 추출 (단일 순회)
+            const { lines, circles, arcs, polylines, hatches } =
+                parseAllEntities(dxf.entities as DXFLibEntity[]);
 
             // 전체 엔티티 수 계산
-            const totalEntityCount =
-                lines.length +
-                circles.length +
-                arcs.length +
-                polylines.length +
-                hatches.length;
+            const totalEntityCount = getTotalEntityCount({
+                lines,
+                circles,
+                arcs,
+                polylines,
+                hatches,
+            });
 
             // 레이어 정보 구축
             const layers = new Map<string, LayerInfo>();
@@ -281,7 +126,7 @@ export function useDXFParser(): UseDXFParserReturn {
             if (totalEntityCount === 0) {
                 const parseError: UploadError = {
                     code: 'EMPTY_FILE',
-                    message: CAD_ERROR_MESSAGES.EMPTY_FILE,
+                    message: MESSAGES.cadViewer.errors.emptyFile,
                 };
                 setError(parseError);
                 throw parseError;
@@ -324,7 +169,7 @@ export function useDXFParser(): UseDXFParserReturn {
             // 일반 에러를 UploadError로 변환
             const parseError: UploadError = {
                 code: 'PARSE_ERROR',
-                message: CAD_ERROR_MESSAGES.PARSE_ERROR,
+                message: MESSAGES.cadViewer.errors.parseError,
             };
             setError(parseError);
             throw parseError;

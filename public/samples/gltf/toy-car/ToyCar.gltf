@@ -1,0 +1,689 @@
+{
+  "asset": {
+    "generator": "glTF-Transform v4.2.1",
+    "version": "2.0",
+    "copyright": "Public domain (CC0). Toy car model created by Guido Odendahl. Materials edited by Eric Chadwick."
+  },
+  "accessors": [
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 179421
+    },
+    {
+      "name": "accessorPositions",
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 49573,
+      "max": [
+        93.53763580322266,
+        189.7447509765625,
+        -9.924240112304688
+      ],
+      "min": [
+        -93.53764343261719,
+        -194.0345001220703,
+        -126.16624450683594
+      ]
+    },
+    {
+      "name": "accessorNormals",
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 49573
+    },
+    {
+      "name": "accessorUVs",
+      "type": "VEC2",
+      "componentType": 5126,
+      "count": 49573
+    },
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 52146
+    },
+    {
+      "name": "accessorPositions",
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 8850,
+      "max": [
+        384.478271484375,
+        369.81146240234375,
+        162.06275939941406
+      ],
+      "min": [
+        -349.9508972167969,
+        -369.8115234375,
+        -10.12609577178955
+      ]
+    },
+    {
+      "name": "accessorNormals",
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 8850
+    },
+    {
+      "name": "accessorUVs",
+      "type": "VEC2",
+      "componentType": 5126,
+      "count": 8850
+    },
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 5754
+    },
+    {
+      "name": "accessorPositions",
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 963,
+      "max": [
+        57.411041259765625,
+        91.12582397460938,
+        -89.59808349609375
+      ],
+      "min": [
+        -57.411048889160156,
+        -93.18028259277344,
+        -120.69184875488281
+      ]
+    },
+    {
+      "name": "accessorNormals",
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 963
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 237476
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 237476,
+      "byteLength": 66966
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 304442,
+      "byteLength": 6175
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "extensions": {
+        "EXT_texture_webp": {
+          "source": 2
+        }
+      }
+    },
+    {
+      "sampler": 0,
+      "extensions": {
+        "EXT_texture_webp": {
+          "source": 1
+        }
+      }
+    },
+    {
+      "sampler": 0,
+      "extensions": {
+        "EXT_texture_webp": {
+          "source": 0
+        }
+      }
+    },
+    {
+      "sampler": 0,
+      "extensions": {
+        "EXT_texture_webp": {
+          "source": 3
+        }
+      }
+    },
+    {
+      "sampler": 0,
+      "extensions": {
+        "EXT_texture_webp": {
+          "source": 6
+        }
+      }
+    },
+    {
+      "sampler": 0,
+      "extensions": {
+        "EXT_texture_webp": {
+          "source": 4
+        }
+      }
+    },
+    {
+      "sampler": 0,
+      "extensions": {
+        "EXT_texture_webp": {
+          "source": 5
+        }
+      }
+    },
+    {
+      "sampler": 0,
+      "extensions": {
+        "EXT_texture_webp": {
+          "source": 7
+        }
+      }
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/webp",
+      "uri": "ToyCar_normal.webp"
+    },
+    {
+      "mimeType": "image/webp",
+      "uri": "ToyCar_emissive.webp"
+    },
+    {
+      "mimeType": "image/webp",
+      "uri": "ToyCar_basecolor.webp"
+    },
+    {
+      "mimeType": "image/webp",
+      "uri": "ToyCar_occlusion_roughness_metallic.webp"
+    },
+    {
+      "mimeType": "image/webp",
+      "uri": "Fabric_normal.webp"
+    },
+    {
+      "mimeType": "image/webp",
+      "uri": "Fabric_occlusion.webp"
+    },
+    {
+      "mimeType": "image/webp",
+      "uri": "Fabric_baseColor.webp"
+    },
+    {
+      "mimeType": "image/webp",
+      "uri": "ToyCar_clearcoat.webp"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "ToyCar.bin",
+      "byteLength": 310617
+    }
+  ],
+  "materials": [
+    {
+      "name": "ToyCar",
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 3
+        }
+      },
+      "emissiveFactor": [
+        1,
+        1,
+        1
+      ],
+      "emissiveTexture": {
+        "index": 1
+      },
+      "normalTexture": {
+        "index": 2
+      },
+      "occlusionTexture": {
+        "index": 3
+      },
+      "extensions": {
+        "KHR_materials_clearcoat": {
+          "clearcoatFactor": 1,
+          "clearcoatRoughnessFactor": 0,
+          "clearcoatTexture": {
+            "index": 7
+          }
+        }
+      }
+    },
+    {
+      "name": "Fabric",
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.15,
+          0.15,
+          0.15,
+          1
+        ],
+        "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 4,
+          "extensions": {
+            "KHR_texture_transform": {
+              "scale": [
+                3,
+                3
+              ],
+              "texCoord": 0
+            }
+          }
+        }
+      },
+      "normalTexture": {
+        "index": 5,
+        "extensions": {
+          "KHR_texture_transform": {
+            "scale": [
+              3,
+              3
+            ],
+            "texCoord": 0
+          }
+        }
+      },
+      "occlusionTexture": {
+        "index": 6,
+        "extensions": {
+          "KHR_texture_transform": {
+            "texCoord": 0
+          }
+        }
+      },
+      "extensions": {
+        "KHR_materials_sheen": {
+          "sheenColorFactor": [
+            1,
+            0,
+            0
+          ],
+          "sheenRoughnessFactor": 0.5
+        }
+      }
+    },
+    {
+      "name": "Glass",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.3,
+          0.8,
+          0.3,
+          1
+        ],
+        "roughnessFactor": 0,
+        "metallicFactor": 0
+      },
+      "extensions": {
+        "KHR_materials_transmission": {
+          "transmissionFactor": 1
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "ToyCar",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 1,
+            "NORMAL": 2,
+            "TEXCOORD_0": 3
+          },
+          "mode": 4,
+          "material": 0,
+          "indices": 0,
+          "extensions": {
+            "KHR_draco_mesh_compression": {
+              "bufferView": 0,
+              "attributes": {
+                "POSITION": 0,
+                "NORMAL": 1,
+                "TEXCOORD_0": 2
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fabric",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 5,
+            "NORMAL": 6,
+            "TEXCOORD_0": 7
+          },
+          "mode": 4,
+          "material": 1,
+          "indices": 4,
+          "extensions": {
+            "KHR_draco_mesh_compression": {
+              "bufferView": 1,
+              "attributes": {
+                "POSITION": 0,
+                "NORMAL": 1,
+                "TEXCOORD_0": 2
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Glass",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 9,
+            "NORMAL": 10
+          },
+          "mode": 4,
+          "material": 2,
+          "indices": 8,
+          "extensions": {
+            "KHR_draco_mesh_compression": {
+              "bufferView": 2,
+              "attributes": {
+                "POSITION": 0,
+                "NORMAL": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "cameras": [
+    {
+      "name": "Camera001",
+      "type": "perspective",
+      "perspective": {
+        "znear": 0.001,
+        "zfar": 2,
+        "yfov": 0.9
+      }
+    },
+    {
+      "name": "Camera002",
+      "type": "perspective",
+      "perspective": {
+        "znear": 0.001,
+        "zfar": 2,
+        "yfov": 0.41
+      }
+    },
+    {
+      "name": "Camera003",
+      "type": "perspective",
+      "perspective": {
+        "znear": 0.001,
+        "zfar": 2,
+        "yfov": 0.68
+      }
+    },
+    {
+      "name": "Camera004",
+      "type": "perspective",
+      "perspective": {
+        "znear": 0.001,
+        "zfar": 2,
+        "yfov": 0.63
+      }
+    },
+    {
+      "name": "Camera005",
+      "type": "perspective",
+      "perspective": {
+        "znear": 0.001,
+        "zfar": 2,
+        "yfov": 0.96
+      }
+    },
+    {
+      "name": "Camera006",
+      "type": "perspective",
+      "perspective": {
+        "znear": 0.001,
+        "zfar": 2,
+        "yfov": 0.96
+      }
+    },
+    {
+      "name": "Camera007",
+      "type": "perspective",
+      "perspective": {
+        "znear": 0.001,
+        "zfar": 2,
+        "yfov": 0.96
+      }
+    },
+    {
+      "name": "Camera008",
+      "type": "perspective",
+      "perspective": {
+        "znear": 0.001,
+        "zfar": 2,
+        "yfov": 0.96
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "name": "ToyCar",
+      "rotation": [
+        0.7071068,
+        0,
+        0,
+        0.7071067
+      ],
+      "scale": [
+        0.0001,
+        0.0001,
+        0.0001
+      ],
+      "mesh": 0
+    },
+    {
+      "name": "Fabric",
+      "rotation": [
+        0.7071068,
+        0,
+        0,
+        0.7071067
+      ],
+      "scale": [
+        0.0001,
+        0.0001,
+        0.0001
+      ],
+      "mesh": 1
+    },
+    {
+      "name": "Glass",
+      "rotation": [
+        0.7071068,
+        0,
+        0,
+        0.7071067
+      ],
+      "scale": [
+        0.0001,
+        0.0001,
+        0.0001
+      ],
+      "mesh": 2
+    },
+    {
+      "name": "Camera001",
+      "translation": [
+        -0.0169006381,
+        0.0253599286,
+        0.0302319955
+      ],
+      "rotation": [
+        -0.330993533,
+        -0.274300218,
+        -0.101194724,
+        0.8971969
+      ],
+      "camera": 0
+    },
+    {
+      "name": "Camera002",
+      "translation": [
+        -0.04332856,
+        0.0235993266,
+        0.0760967
+      ],
+      "rotation": [
+        -0.12160936,
+        -0.2651013,
+        -0.03372518,
+        0.9559263
+      ],
+      "camera": 1
+    },
+    {
+      "name": "Camera003",
+      "translation": [
+        -0.0121543175,
+        0.0101683857,
+        0.0269274339
+      ],
+      "rotation": [
+        -0.103828281,
+        -0.298918,
+        -0.0327368826,
+        0.9480485
+      ],
+      "camera": 2
+    },
+    {
+      "name": "Camera004",
+      "translation": [
+        -0.0391006,
+        -0.00724446634,
+        0.0497552231
+      ],
+      "rotation": [
+        0.00262248516,
+        -0.333805561,
+        0.0009287149,
+        0.9426378
+      ],
+      "camera": 3
+    },
+    {
+      "name": "Camera005",
+      "translation": [
+        -0.00747511769,
+        0.0108056553,
+        -0.0208431184
+      ],
+      "rotation": [
+        -0.0464569926,
+        -0.9334676,
+        -0.13119027,
+        0.330558747
+      ],
+      "camera": 4
+    },
+    {
+      "name": "Camera006",
+      "translation": [
+        -0.04173353,
+        0.027297115,
+        -0.04835121
+      ],
+      "rotation": [
+        -0.118150666,
+        -0.881382942,
+        -0.307792783,
+        0.338331461
+      ],
+      "camera": 5
+    },
+    {
+      "name": "Camera007",
+      "translation": [
+        0.0137228724,
+        0.009173209,
+        -0.0244436264
+      ],
+      "rotation": [
+        0.0496652424,
+        -0.9284824,
+        -0.134623677,
+        -0.3425349
+      ],
+      "camera": 6
+    },
+    {
+      "name": "Camera008",
+      "translation": [
+        -0.006532357,
+        0.0125829373,
+        0.0118280016
+      ],
+      "rotation": [
+        -0.21798256,
+        -0.300790727,
+        -0.07082678,
+        0.9257387
+      ],
+      "camera": 7
+    }
+  ],
+  "scenes": [
+    {
+      "nodes": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    }
+  ],
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_texture_webp",
+    "KHR_draco_mesh_compression",
+    "KHR_materials_clearcoat",
+    "KHR_materials_sheen",
+    "KHR_materials_transmission",
+    "KHR_texture_transform"
+  ],
+  "extensionsRequired": [
+    "EXT_texture_webp",
+    "KHR_draco_mesh_compression"
+  ]
+}
