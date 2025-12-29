@@ -5,6 +5,7 @@
 import { useState } from 'react';
 
 import { MENU_ITEMS, ROUTES } from '@/constants';
+import { MESSAGES } from '@/locales';
 
 import { DemoCard } from './DemoCard';
 
@@ -42,13 +43,17 @@ export default function HomePage() {
         <div className="min-h-full bg-gray-50 p-8">
             {/* Header */}
             <div className="mb-8">
-                <h1
-                    onClick={refreshColors}
-                    className="mb-2 cursor-pointer text-3xl font-bold text-gray-800 transition-colors hover:text-blue-600"
-                >
-                    Three.js 3D Viewer
+                <h1 className="mb-2 text-3xl font-bold text-gray-800">
+                    <button
+                        type="button"
+                        onClick={refreshColors}
+                        className="cursor-pointer rounded transition-colors hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                        aria-label={MESSAGES.home.refreshColorsLabel}
+                    >
+                        {MESSAGES.home.title}
+                    </button>
                 </h1>
-                <p className="text-gray-600">3D 그래픽 데모 프로젝트</p>
+                <p className="text-gray-600">{MESSAGES.home.subtitle}</p>
             </div>
 
             {/* Demo Cards */}
@@ -68,9 +73,7 @@ export default function HomePage() {
 
             {/* Footer Info */}
             <div className="mt-12 border-t border-gray-200 pt-6">
-                <p className="text-sm text-gray-500">
-                    React Three Fiber 기반 3D 뷰어 프로젝트
-                </p>
+                <p className="text-sm text-gray-500">{MESSAGES.home.footer}</p>
             </div>
         </div>
     );

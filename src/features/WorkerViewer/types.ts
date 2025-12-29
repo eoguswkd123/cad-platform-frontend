@@ -4,6 +4,7 @@
  */
 
 import type { ShadingMode } from '@/components/ControlPanel';
+import type { CommonErrorCode } from '@/utils';
 
 /** 모델 정보 (Mock/Real API 공통) */
 export interface ModelInfo {
@@ -42,7 +43,7 @@ export type LoadingStatus = 'idle' | 'loading' | 'success' | 'error';
 
 /** 로드 에러 */
 export interface LoadError {
-    code: 'FETCH_ERROR' | 'PARSE_ERROR' | 'NOT_FOUND' | 'NETWORK_ERROR';
+    code: CommonErrorCode;
     message: string;
 }
 

@@ -13,10 +13,20 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { resetMockWorker } from '@tests/mocks/worker';
+import {
+    resetMockWorker,
+    getCurrentMockWorker,
+    simulateWorkerSuccess,
+    simulateWorkerError,
+    simulateWorkerProgress,
+    simulateWorkerRuntimeError,
+    createSuccessPayload,
+} from '@tests/mocks/worker';
 
 import { WORKER_THRESHOLD_BYTES } from '../../constants';
 import { useDXFWorker, shouldUseWorker } from '../useDXFWorker';
+
+import type { MockWorker } from '@tests/mocks/worker';
 
 // 테스트용 File 객체 생성
 function createTestFile(
@@ -165,8 +175,8 @@ describe('shouldUseWorker', () => {
 // Worker 통신 테스트 - 참고 사항
 // ============================================================
 //
-// Worker 통신 테스트는 Vitest의 vi.mock 호이스팅 제한과
-// Worker 생성 시 import.meta.url 사용으로 인해 직접 테스트하기 어렵습니다.
+// Worker 통신 테스트는 Vite의 import.meta.url을 사용한 Worker 생성 방식으로 인해
+// 단위 테스트에서 직접 테스트하기 어렵습니다.
 //
 // useDXFWorker 훅의 핵심 로직은 위 테스트에서 충분히 검증됩니다:
 // 1. 초기 상태 (isLoading, progress, error 등)
@@ -175,5 +185,170 @@ describe('shouldUseWorker', () => {
 // 4. 훅 재사용성
 // 5. shouldUseWorker 유틸리티 함수
 //
-// Worker 통신 로직은 E2E 테스트 또는 통합 테스트에서 검증하는 것이 적합합니다.
+// Worker 통신 로직은 tests/integration/dxf-pipeline.test.ts에서 검증합니다.
 // ============================================================
+
+describe('MockWorker 유틸리티', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        resetMockWorker();
+    });
+
+    afterEach(() => {
+        resetMockWorker();
+    });
+
+    describe('MockWorker 클래스', () => {
+        it('초기 상태에서 getCurrentMockWorker는 null 반환', () => {
+            expect(getCurrentMockWorker()).toBeNull();
+        });
+
+        it('simulateWorkerSuccess 함수가 올바른 메시지 형식 전송', () => {
+            const mockOnMessage = vi.fn();
+            const mockWorker = {
+                onmessage: mockOnMessage,
+                onerror: null,
+                postMessage: vi.fn(),
+                terminate: vi.fn(),
+            };
+
+            const payload = createSuccessPayload();
+
+            // onmessage 설정 후 success 시뮬레이션
+            simulateWorkerSuccess(mockWorker as unknown as MockWorker, payload);
+
+            expect(mockOnMessage).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: {
+                        type: 'success',
+                        payload,
+                    },
+                })
+            );
+        });
+
+        it('simulateWorkerError 함수가 올바른 에러 형식 전송', () => {
+            const mockOnMessage = vi.fn();
+            const mockWorker = {
+                onmessage: mockOnMessage,
+                onerror: null,
+                postMessage: vi.fn(),
+                terminate: vi.fn(),
+            };
+
+            simulateWorkerError(mockWorker as unknown as MockWorker, {
+                code: 'PARSE_ERROR',
+                message: '파싱 오류',
+            });
+
+            expect(mockOnMessage).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: {
+                        type: 'error',
+                        payload: { code: 'PARSE_ERROR', message: '파싱 오류' },
+                    },
+                })
+            );
+        });
+
+        it('simulateWorkerProgress 함수가 올바른 진행률 형식 전송', () => {
+            const mockOnMessage = vi.fn();
+            const mockWorker = {
+                onmessage: mockOnMessage,
+                onerror: null,
+                postMessage: vi.fn(),
+                terminate: vi.fn(),
+            };
+
+            simulateWorkerProgress(
+                mockWorker as unknown as MockWorker,
+                50,
+                'DXF 파싱 중...'
+            );
+
+            expect(mockOnMessage).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: {
+                        type: 'progress',
+                        payload: { percent: 50, stage: 'DXF 파싱 중...' },
+                    },
+                })
+            );
+        });
+
+        it('simulateWorkerRuntimeError 함수가 onerror 호출', () => {
+            const mockOnError = vi.fn();
+            const mockWorker = {
+                onmessage: null,
+                onerror: mockOnError,
+                postMessage: vi.fn(),
+                terminate: vi.fn(),
+            };
+
+            simulateWorkerRuntimeError(
+                mockWorker as unknown as MockWorker,
+                'Script error'
+            );
+
+            expect(mockOnError).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    message: 'Script error',
+                })
+            );
+        });
+
+        it('createSuccessPayload가 기본값으로 올바른 페이로드 생성', () => {
+            const payload = createSuccessPayload();
+
+            expect(payload).toMatchObject({
+                lines: expect.any(Array),
+                circles: expect.any(Array),
+                arcs: expect.any(Array),
+                polylines: expect.any(Array),
+                hatches: expect.any(Array),
+                bounds: expect.any(Object),
+                metadata: expect.any(Object),
+                layers: expect.any(Array),
+            });
+
+            expect(payload.lines.length).toBeGreaterThan(0);
+            expect(payload.metadata.fileName).toBe('test.dxf');
+        });
+
+        it('createSuccessPayload가 커스텀 옵션을 올바르게 병합', () => {
+            const customLayers: [
+                string,
+                {
+                    name: string;
+                    color: string;
+                    visible: boolean;
+                    entityCount: number;
+                },
+            ][] = [
+                [
+                    'Custom',
+                    {
+                        name: 'Custom',
+                        color: '#ff0000',
+                        visible: true,
+                        entityCount: 10,
+                    },
+                ],
+            ];
+
+            const payload = createSuccessPayload({
+                layers: customLayers,
+                metadata: {
+                    fileName: 'custom.dxf',
+                    fileSize: 2048,
+                    entityCount: 10,
+                    parseTime: 100,
+                },
+            });
+
+            expect(payload.layers).toEqual(customLayers);
+            expect(payload.metadata.fileName).toBe('custom.dxf');
+            expect(payload.metadata.fileSize).toBe(2048);
+        });
+    });
+});

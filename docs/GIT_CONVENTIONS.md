@@ -1,7 +1,7 @@
 # Git 커밋 규칙 (Conventional Commits)
 
-> **Version**: 0.1.3
-> **Last Updated**: 2025-12-05
+> **Version**: 0.1.4
+> **Last Updated**: 2025-12-18
 
 Three.js CAD Viewer 프로젝트의 Git 워크플로우 및 커밋 규칙 가이드입니다. 이 프로젝트는 **Conventional Commits** 표준을 따릅니다.
 
@@ -184,6 +184,28 @@ git fetch --prune               # 삭제된 원격 브랜치 정리
 # 자격증명 설정
 git remote -v                    # 원격 저장소 경로 확인
 git remote set-url origin https://사용자명@github.com/조직/저장소.git  # 자격증명 포함 URL 설정
+
+# Branch Protection 테스트
+# 1. 임시 커밋
+git add <파일>
+git add docs/TODO.md                                 # 예시
+git commit -m "test: branch protection check"
+
+# 2. 보호 규칙 테스트
+git push origin <현재브랜치>:<보호브랜치> --force
+git push origin docs/dhlim:develop --force           # 예시
+
+# 3. 커밋 취소 (변경사항은 유지)
+git reset --soft HEAD~1
+
+# 4. 스테이징 해제
+git restore --staged <파일>
+
+# 5. 파일 원래대로 복원
+git restore <파일>
+
+# 또는 한 줄로:
+git reset --hard HEAD~1
 ```
 
 ---
@@ -224,6 +246,7 @@ git remote set-url origin https://사용자명@github.com/조직/저장소.git  
 
 | 버전  | 날짜       | 변경 내용                                             |
 | ----- | ---------- | ----------------------------------------------------- |
+| 0.1.4 | 2025-12-18 | Branch Protection 테스트 명령어 추가                  |
 | 0.1.3 | 2025-12-05 | 프로젝트 문서 → 관련 문서 테이블 형식 변환            |
 | 0.1.2 | 2025-12-04 | 삭제된 PHASE_DEV_DOC_GUIDE.md 참조 제거               |
 | 0.1.1 | 2025-12-02 | Phase개발 템플릿 개발완료, Git 자격증명 설정방법 추가 |

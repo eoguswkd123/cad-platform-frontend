@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { APP_CONFIG, MENU_ITEMS, ROUTES } from '@/constants';
+import { MESSAGES } from '@/locales/ko';
 
 import { SideBarMenuItem } from './SideBarMenuItem';
 
@@ -9,7 +10,7 @@ export const SideBar = (): JSX.Element => {
         <aside
             className="hidden w-64 border-r border-gray-200 bg-white shadow-lg md:block"
             role="complementary"
-            aria-label="사이드바"
+            aria-label={MESSAGES.aria.sidebar}
         >
             {/* 로고 섹션 */}
             <Link
@@ -26,7 +27,7 @@ export const SideBar = (): JSX.Element => {
             </Link>
 
             {/* 메뉴 섹션 */}
-            <nav className="p-4" aria-label="메인 네비게이션">
+            <nav className="p-4" aria-label={MESSAGES.aria.mainNavigation}>
                 <ul className="space-y-2" role="list">
                     {MENU_ITEMS.map((item) => (
                         <SideBarMenuItem key={item.path} item={item} />

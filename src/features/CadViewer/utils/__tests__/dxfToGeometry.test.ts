@@ -16,10 +16,7 @@ import {
     createPatternTexture,
     cadDataToGeometry,
     calculateBounds,
-    getBoundsCenter,
-    getBoundsSize,
     calculateCameraDistance,
-    centerGeometry,
 } from '../dxfToGeometry';
 
 import type {
@@ -125,7 +122,7 @@ describe('dxfToGeometry', () => {
             expect(geometry.attributes.position!.count).toBe(2);
         });
 
-        it('복수 라인이면 라인 수 * 2 정점 생성', () => {
+        it('복수 라인 - 인덱스 버퍼로 정점 중복 제거', () => {
             const lines: ParsedLine[] = [
                 {
                     start: { x: 0, y: 0, z: 0 },
@@ -145,7 +142,11 @@ describe('dxfToGeometry', () => {
             ];
             const geometry = linesToGeometry(lines);
 
-            expect(geometry.attributes.position!.count).toBe(6); // 3 lines * 2 vertices
+            // 인덱스 버퍼: 공유 정점 중복 제거
+            // 고유 정점: (0,0,0), (10,0,0), (10,10,0), (0,10,0) = 4개
+            expect(geometry.attributes.position!.count).toBe(4);
+            // 인덱스 배열: 6개 (3 lines * 2 indices)
+            expect(geometry.index!.count).toBe(6);
         });
 
         it('3D 좌표가 정확히 변환됨', () => {
@@ -267,7 +268,7 @@ describe('dxfToGeometry', () => {
             expect(geometry.attributes.position).toBeUndefined();
         });
 
-        it('열린 폴리라인 (3개 정점) → 4개 정점 (2개 세그먼트)', () => {
+        it('열린 폴리라인 (3개 정점) - 인덱스 버퍼로 정점 재사용', () => {
             const polylines: ParsedPolyline[] = [
                 {
                     vertices: [
@@ -281,11 +282,13 @@ describe('dxfToGeometry', () => {
             ];
             const geometry = polylinesToGeometry(polylines);
 
-            // 3개 정점 → 2개 라인 세그먼트 → 4개 정점
-            expect(geometry.attributes.position!.count).toBe(4);
+            // 인덱스 버퍼: 3개 고유 정점
+            expect(geometry.attributes.position!.count).toBe(3);
+            // 인덱스: 2개 세그먼트 * 2 = 4
+            expect(geometry.index!.count).toBe(4);
         });
 
-        it('닫힌 폴리라인 (3개 정점) → 6개 정점 (3개 세그먼트)', () => {
+        it('닫힌 폴리라인 (3개 정점) - 인덱스 버퍼로 정점 재사용', () => {
             const polylines: ParsedPolyline[] = [
                 {
                     vertices: [
@@ -299,8 +302,10 @@ describe('dxfToGeometry', () => {
             ];
             const geometry = polylinesToGeometry(polylines);
 
-            // 3개 정점 + 닫기 → 3개 라인 세그먼트 → 6개 정점
-            expect(geometry.attributes.position!.count).toBe(6);
+            // 인덱스 버퍼: 3개 고유 정점 (닫힌 폴리라인도 정점은 3개)
+            expect(geometry.attributes.position!.count).toBe(3);
+            // 인덱스: 3개 세그먼트 * 2 = 6
+            expect(geometry.index!.count).toBe(6);
         });
 
         it('2점 미만 폴리라인은 무시됨 (빈 정점 배열 반환)', () => {
@@ -332,7 +337,7 @@ describe('dxfToGeometry', () => {
 
         it('LOD 자동 적용: 엔티티 < 1000 → HIGH_QUALITY_SEGMENTS', () => {
             const data = createEmptyCADData();
-            // 100개 라인 추가
+            // 100개 라인 추가 (연결된 라인들)
             for (let i = 0; i < 100; i++) {
                 data.lines.push({
                     start: { x: i, y: 0, z: 0 },
@@ -344,8 +349,9 @@ describe('dxfToGeometry', () => {
 
             const geometry = cadDataToGeometry(data);
             expect(geometry.attributes.position).toBeDefined();
-            // LOD는 원/호에만 적용되므로 라인만 있으면 단순히 정점 수만 확인
-            expect(geometry.attributes.position!.count).toBe(200); // 100 lines * 2
+            // 인덱스 버퍼: 연결된 라인은 정점 공유
+            // 고유 정점: 101개 (0~100)
+            expect(geometry.attributes.position!.count).toBe(101);
         });
 
         it('segmentsOverride 적용 확인', () => {
@@ -402,8 +408,8 @@ describe('dxfToGeometry', () => {
 
             const geometry = cadDataToGeometry(data);
             expect(geometry.attributes.position).toBeDefined();
-            // 3개 정점 → 2개 라인 세그먼트 → 4개 정점
-            expect(geometry.attributes.position!.count).toBe(4);
+            // 인덱스 버퍼: 3개 고유 정점
+            expect(geometry.attributes.position!.count).toBe(3);
         });
 
         it('arcs 포함 데이터 병합', () => {
@@ -538,50 +544,6 @@ describe('dxfToGeometry', () => {
         });
     });
 
-    describe('getBoundsCenter', () => {
-        it('바운딩 박스 중심점 정확히 계산', () => {
-            const bounds: BoundingBox = {
-                min: { x: 0, y: 0, z: 0 },
-                max: { x: 100, y: 200, z: 50 },
-            };
-            const center = getBoundsCenter(bounds);
-
-            expect(center).toEqual({ x: 50, y: 100, z: 25 });
-        });
-
-        it('음수 좌표 포함 바운딩 박스 중심점', () => {
-            const bounds: BoundingBox = {
-                min: { x: -100, y: -50, z: -10 },
-                max: { x: 100, y: 50, z: 10 },
-            };
-            const center = getBoundsCenter(bounds);
-
-            expect(center).toEqual({ x: 0, y: 0, z: 0 });
-        });
-    });
-
-    describe('getBoundsSize', () => {
-        it('바운딩 박스 크기 정확히 계산', () => {
-            const bounds: BoundingBox = {
-                min: { x: 0, y: 10, z: 20 },
-                max: { x: 100, y: 110, z: 70 },
-            };
-            const size = getBoundsSize(bounds);
-
-            expect(size).toEqual({ x: 100, y: 100, z: 50 });
-        });
-
-        it('음수 좌표 포함 바운딩 박스 크기', () => {
-            const bounds: BoundingBox = {
-                min: { x: -50, y: -25, z: -10 },
-                max: { x: 50, y: 75, z: 10 },
-            };
-            const size = getBoundsSize(bounds);
-
-            expect(size).toEqual({ x: 100, y: 100, z: 20 });
-        });
-    });
-
     describe('calculateCameraDistance', () => {
         it('기본 FOV(45도)로 카메라 거리 계산', () => {
             const bounds: BoundingBox = {
@@ -606,26 +568,6 @@ describe('dxfToGeometry', () => {
 
             // 넓은 FOV는 더 가까운 거리 필요
             expect(distance90).toBeLessThan(distance45);
-        });
-    });
-
-    describe('centerGeometry', () => {
-        it('지오메트리를 원점 중심으로 이동', () => {
-            const lines: ParsedLine[] = [
-                {
-                    start: { x: 100, y: 100, z: 0 },
-                    end: { x: 200, y: 200, z: 0 },
-                    layer: undefined,
-                },
-            ];
-            const geometry = linesToGeometry(lines);
-
-            centerGeometry(geometry);
-
-            const positions = geometry.attributes.position!;
-            // 중심이 (150, 150, 0)이었으므로 이동 후 약 (-50, -50, 0) ~ (50, 50, 0)
-            expect(positions.getX(0)).toBeCloseTo(-50, 1);
-            expect(positions.getY(0)).toBeCloseTo(-50, 1);
         });
     });
 

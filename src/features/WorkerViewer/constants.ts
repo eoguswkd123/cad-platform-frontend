@@ -3,6 +3,13 @@
  * glTF/glb 뷰어 상수 정의
  */
 
+import type {
+    FileUploadConfig,
+    FileUploadMessages,
+    UrlValidationConfig,
+} from '@/components/FilePanel';
+import { createUrlSecurityConfig } from '@/config/urlSecurity';
+
 import type { WorkerViewerConfig } from './types';
 
 /** 기본 뷰어 설정 */
@@ -39,10 +46,49 @@ export const WORKER_GRID_CONFIG = {
     colorGrid: 0x222222,
 } as const;
 
-/** 에러 메시지 */
-export const WORKER_ERROR_MESSAGES = {
-    FETCH_ERROR: '모델 파일을 가져오는데 실패했습니다.',
-    PARSE_ERROR: 'glTF/glb 파일을 파싱하는데 실패했습니다.',
-    NOT_FOUND: '모델을 찾을 수 없습니다.',
-    NETWORK_ERROR: '네트워크 오류가 발생했습니다.',
-} as const;
+/** GLTF URL 검증 설정 (기본 확장자 검증용) */
+export const GLTF_URL_VALIDATION_CONFIG: UrlValidationConfig = {
+    acceptExtensions: ['.glb', '.gltf'],
+};
+
+/**
+ * GLTF 파일용 URL 보안 설정
+ * 공통 설정은 @/config/urlSecurity에서 관리
+ */
+export const URL_SECURITY_CONFIG = createUrlSecurityConfig({
+    additionalHosts: [
+        'khronos.org', // glTF 샘플
+        'model-viewer.glitch.me', // 예제 모델
+    ],
+    maxResponseSize: 50 * 1024 * 1024, // 50MB
+});
+
+/** GLTF 파일 업로드 설정 */
+export const GLTF_UPLOAD_CONFIG: FileUploadConfig = {
+    accept: {
+        extensions: ['.glb', '.gltf'],
+        mimeTypes: [
+            'model/gltf-binary',
+            'model/gltf+json',
+            'application/octet-stream',
+        ],
+    },
+    limits: {
+        maxSize: 50 * 1024 * 1024, // 50MB
+        warnSize: 10 * 1024 * 1024, // 10MB
+    },
+};
+
+/** GLTF 파일 업로드 메시지 */
+export const GLTF_UPLOAD_MESSAGES: FileUploadMessages = {
+    dragPrompt: 'GLB/GLTF 파일을 드래그하거나 클릭',
+    maxSizeText: '최대 50MB',
+    loadingText: '모델 로딩 중...',
+};
+
+// ============================================================
+// Sample Files - utils/gltfSamples.ts로 이동
+// ============================================================
+// GLTF_SAMPLES는 동적으로 생성되는 데이터이므로
+// constants.ts가 아닌 utils/gltfSamples.ts에서 export
+// import { GLTF_SAMPLES } from './utils/gltfSamples';

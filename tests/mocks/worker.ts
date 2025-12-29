@@ -19,6 +19,7 @@ export interface WorkerSuccessPayload {
     circles: ParsedCADData['circles'];
     arcs: ParsedCADData['arcs'];
     polylines: ParsedCADData['polylines'];
+    hatches: ParsedCADData['hatches'];
     bounds: ParsedCADData['bounds'];
     metadata: ParsedCADData['metadata'];
     layers: [string, LayerInfo][];
@@ -180,6 +181,7 @@ export function createSuccessPayload(
         circles: options.circles ?? [],
         arcs: options.arcs ?? [],
         polylines: options.polylines ?? [],
+        hatches: options.hatches ?? [],
         bounds: options.bounds ?? {
             min: { x: 0, y: 0, z: 0 },
             max: { x: 100, y: 100, z: 0 },

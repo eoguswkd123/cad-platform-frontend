@@ -83,28 +83,5 @@ class MockWorkerService implements WorkerServiceInterface {
     }
 }
 
-/** Real Worker Service 구현 (Phase 3B.1 완료 후 활성화) */
-// class RealWorkerService implements WorkerServiceInterface {
-//     async getAvailableModels(): Promise<ModelInfo[]> {
-//         const response = await apiCaller.get('/api/v1/models');
-//         return response.data;
-//     }
-//
-//     async fetchModelById(id: string): Promise<ModelInfo | undefined> {
-//         const response = await apiCaller.get(`/api/v1/models/${id}`);
-//         return response.data;
-//     }
-//
-//     createModelFromUrl(url: string): ModelInfo {
-//         // 실제 구현에서는 서버에서 메타데이터 조회
-//         return { id: '', name: '', url };
-//     }
-// }
-
-/** Mock 사용 여부 (환경 변수로 전환 가능) */
-const USE_MOCK = true;
-
-/** 서비스 인스턴스 export */
-export const workerService: WorkerServiceInterface = USE_MOCK
-    ? new MockWorkerService()
-    : new MockWorkerService(); // 나중에 RealWorkerService로 교체
+/** 서비스 인스턴스 export (현재 Mock 사용, 백엔드 연동 시 교체) */
+export const workerService: WorkerServiceInterface = new MockWorkerService();

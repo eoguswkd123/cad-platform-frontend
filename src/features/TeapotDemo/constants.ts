@@ -7,12 +7,16 @@ import type { ShadingMode, TeapotConfig } from './types';
 
 /** Teapot 설정 기본값 */
 export const DEFAULT_TEAPOT_CONFIG: TeapotConfig = {
+    // BaseViewerConfig 필드
+    showGrid: true,
+    autoRotate: true,
+    rotateSpeed: 1.0,
+    // TeapotConfig 고유 필드
     tessellation: 15,
     shadingMode: 'smooth',
     showLid: true,
     showBody: true,
     showBottom: true,
-    autoRotate: true,
 };
 
 /** 쉐이딩 모드 옵션 */
