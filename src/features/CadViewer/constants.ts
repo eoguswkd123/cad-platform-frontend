@@ -6,9 +6,10 @@
 import type {
     FileUploadConfig,
     FileUploadMessages,
-} from '@/components/Common/FileUpload';
+} from '@/components/FilePanel';
+import { createUrlSecurityConfig } from '@/config/urlSecurity';
 
-import type { CadViewerConfig, BoundingBox } from './types';
+import type { CadViewerConfig } from './types';
 
 /** 파일 제한 설정 */
 export const FILE_LIMITS = {
@@ -18,15 +19,23 @@ export const FILE_LIMITS = {
     WARNING_SIZE_BYTES: 5 * 1024 * 1024,
     /** 허용 확장자 */
     ACCEPTED_EXTENSIONS: ['.dxf'] as const,
-    /** 허용 MIME 타입 */
+    /** 허용 MIME 타입 (빈 MIME 타입 제거 - 보안 강화) */
     ACCEPTED_MIME_TYPES: [
         'application/dxf',
         'application/x-dxf',
         'image/vnd.dxf',
         'image/x-dxf',
-        '', // DXF 파일은 종종 빈 MIME 타입을 가짐
+        'application/octet-stream', // 일부 서버에서 DXF를 바이너리로 전송
     ] as const,
 } as const;
+
+/**
+ * DXF 파일용 URL 보안 설정
+ * 공통 설정은 @/config/urlSecurity에서 관리
+ */
+export const URL_SECURITY_CONFIG = createUrlSecurityConfig({
+    maxResponseSize: FILE_LIMITS.MAX_SIZE_BYTES, // 20MB
+});
 
 /** CAD Viewer 기본 설정 */
 export const DEFAULT_CAD_CONFIG: CadViewerConfig = {
@@ -59,12 +68,6 @@ export const HATCH_CONFIG = {
     defaultPatternSpacing: 16,
 } as const;
 
-/** 기본 바운딩 박스 */
-export const DEFAULT_BOUNDS: BoundingBox = {
-    min: { x: 0, y: 0, z: 0 },
-    max: { x: 100, y: 100, z: 0 },
-};
-
 /** 카메라 설정 */
 export const CAMERA_CONFIG = {
     /** 기본 FOV */
@@ -91,14 +94,6 @@ export const GRID_CONFIG = {
     divisions: 50,
     colorCenterLine: 0x444444,
     colorGrid: 0x222222,
-} as const;
-
-/** 에러 메시지 */
-export const CAD_ERROR_MESSAGES = {
-    INVALID_TYPE: 'DXF 파일만 업로드 가능합니다 (.dxf)',
-    FILE_TOO_LARGE: `파일 크기가 너무 큽니다. 최대 ${FILE_LIMITS.MAX_SIZE_BYTES / 1024 / 1024}MB까지 지원합니다.`,
-    PARSE_ERROR: 'DXF 파일 파싱 중 오류가 발생했습니다.',
-    EMPTY_FILE: '빈 파일이거나 유효한 엔티티가 없습니다.',
 } as const;
 
 /** WebWorker 사용 임계값 (2MB 이상 파일에서 Worker 사용) */
@@ -136,38 +131,69 @@ export function getLODSegments(entityCount: number): number {
     return LOD_CONFIG.LOW_QUALITY_SEGMENTS;
 }
 
-/**
- * AutoCAD Color Index (ACI) → Hex 색상 매핑
- * DXF 표준 색상 1-9 및 특수 색상
- */
+// ============================================================
+// DXF 색상 상수
+// ============================================================
+
+/** DXF ACI(AutoCAD Color Index) to HEX 매핑 */
 export const DXF_COLOR_MAP: Record<number, string> = {
-    0: '#ffffff', // ByBlock - 기본 흰색
+    // 기본 색상 (0-9)
+    0: '#ffffff', // ByBlock
     1: '#ff0000', // Red
     2: '#ffff00', // Yellow
     3: '#00ff00', // Green
     4: '#00ffff', // Cyan
     5: '#0000ff', // Blue
     6: '#ff00ff', // Magenta
-    7: '#ffffff', // White (기본)
+    7: '#ffffff', // White/Black
     8: '#808080', // Dark Gray
     9: '#c0c0c0', // Light Gray
-    256: '#ffffff', // ByLayer - 기본 흰색
+    // 확장 색상 (10-249 중 주요 색상)
+    10: '#ff0000', // Red
+    11: '#ff7f7f', // Light Red
+    12: '#cc0000', // Dark Red
+    20: '#ff7f00', // Orange
+    30: '#ff7f00', // Orange
+    40: '#ffff00', // Yellow
+    50: '#7fff00', // Yellow-Green
+    60: '#00ff00', // Green
+    70: '#00ff7f', // Green-Cyan
+    80: '#00ffff', // Cyan
+    90: '#007fff', // Cyan-Blue
+    100: '#0000ff', // Blue
+    110: '#7f00ff', // Blue-Violet
+    120: '#ff00ff', // Magenta
+    130: '#ff007f', // Magenta-Red
+    140: '#ff7f7f', // Light Pink
+    150: '#ff7f00', // Orange
+    160: '#7f7f00', // Olive
+    170: '#007f00', // Dark Green
+    180: '#007f7f', // Teal
+    190: '#00007f', // Dark Blue
+    200: '#7f007f', // Purple
+    210: '#7f3f00', // Brown
+    // 회색조 (250-255)
+    250: '#333333', // Very Dark Gray
+    251: '#505050', // Dark Gray
+    252: '#696969', // Dim Gray
+    253: '#808080', // Gray
+    254: '#c0c0c0', // Silver
+    255: '#ffffff', // White
+    // ByLayer
+    256: '#ffffff',
 } as const;
 
-/** 기본 레이어 색상 */
+/** 레이어 기본 색상 */
 export const DEFAULT_LAYER_COLOR = '#00ff00';
 
-/**
- * ACI 색상 값을 Hex 색상으로 변환
- * @param aciColor AutoCAD Color Index (0-256)
- * @returns Hex 색상 문자열
- */
-export function aciToHex(aciColor: number | undefined): string {
-    if (aciColor === undefined) {
-        return DEFAULT_LAYER_COLOR;
-    }
-    return DXF_COLOR_MAP[aciColor] ?? DEFAULT_LAYER_COLOR;
-}
+/** 빈 도면 기본 바운딩 박스 */
+export const DEFAULT_BOUNDS = {
+    min: { x: 0, y: 0, z: 0 },
+    max: { x: 100, y: 100, z: 0 },
+} as const;
+
+// aciToHex는 entityMath.ts에서 정의 (순수 함수)
+export { aciToHex } from './services/entityMath';
 
 // ============================================================
 // FileUpload Config (공유 컴포넌트에 주입)
@@ -179,8 +205,8 @@ export function aciToHex(aciColor: number | undefined): string {
  */
 export const DXF_UPLOAD_CONFIG: FileUploadConfig = {
     accept: {
-        extensions: FILE_LIMITS.ACCEPTED_EXTENSIONS as unknown as string[],
-        mimeTypes: FILE_LIMITS.ACCEPTED_MIME_TYPES as unknown as string[],
+        extensions: FILE_LIMITS.ACCEPTED_EXTENSIONS,
+        mimeTypes: FILE_LIMITS.ACCEPTED_MIME_TYPES,
     },
     limits: {
         maxSize: FILE_LIMITS.MAX_SIZE_BYTES,
@@ -190,11 +216,17 @@ export const DXF_UPLOAD_CONFIG: FileUploadConfig = {
 
 /**
  * DXF 파일 업로드 UI 메시지
- * FileUpload 공유 컴포넌트에 주입
+ * FileUploadBox 컴포넌트에 주입
  */
 export const DXF_UPLOAD_MESSAGES: FileUploadMessages = {
     dragPrompt: 'DXF 파일을 드래그하거나 클릭',
     maxSizeText: `최대 ${FILE_LIMITS.MAX_SIZE_BYTES / 1024 / 1024}MB`,
-    sampleLabel: '샘플 불러오기',
     loadingText: '파싱 중...',
 };
+
+// ============================================================
+// Sample Files - utils/dxfSamples.ts로 이동
+// ============================================================
+// DXF_SAMPLES는 동적으로 생성되는 데이터이므로
+// constants.ts가 아닌 utils/dxfSamples.ts에서 export
+// import { DXF_SAMPLES } from './utils/dxfSamples';

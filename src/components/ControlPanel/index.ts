@@ -13,4 +13,8 @@ export { RotateToggle } from './RotateToggle';
 export { SpeedSlider } from './SpeedSlider';
 export { ViewerActionButtons } from './ViewerActionButtons';
 export { ShadingSelect } from './ShadingSelect';
-export type { ShadingMode } from './types';
+export type {
+    ShadingMode,
+    ResetIconType,
+    ViewerActionButtonsProps,
+} from './types';

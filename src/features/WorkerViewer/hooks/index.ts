@@ -2,4 +2,5 @@
  * WorkerViewer - Hooks Barrel Export
  */
 
-export { useWorkerModel } from './useWorkerModel';
+export { useGltfLoader } from './useGltfLoader';
+export type { UseGltfLoaderReturn } from './useGltfLoader';

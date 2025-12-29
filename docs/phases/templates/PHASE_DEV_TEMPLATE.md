@@ -1,17 +1,17 @@
 # Phase X.Y: [기능명] Implementation
 
-> **Version**: 0.0.3
-> **Last Updated**: 2025-12-15
+> **Version**: 0.0.4
+> **Last Updated**: 2025-12-29
 
 <!-- REFERENCE_ONLY: 문서 생성 시 참고하되 복사하지 마세요 -->
 
 ## Naming Conventions (네이밍 규칙)
 
-| 유형       | 규칙                             | 예시                                         |
-| ---------- | -------------------------------- | -------------------------------------------- |
-| Phase 폴더 | `##-PascalCase`                  | `01-Foundation/`, `02-CadViewer/`            |
-| Phase 파일 | `[Phase번호]_SCREAMING_SNAKE.md` | `1.2_TEAPOT_DEMO.md`, `2.1_DXF_VIEWER.md`    |
-| 섹션 제목  | 영어(한국어)                     | `Overview (개요)`, `Architecture (아키텍처)` |
+| 유형       | 규칙                             | 예시                                              |
+| ---------- | -------------------------------- | ------------------------------------------------- |
+| Phase 폴더 | `##-PascalCase`                  | `01-Foundation/`, `02-CadViewer/`                 |
+| Phase 파일 | `[Phase번호]_SCREAMING_SNAKE.md` | `1.2_THREEJS_DEMO_TEAPOT.md`, `2.1_DXF_VIEWER.md` |
+| 섹션 제목  | 영어(한국어)                     | `Overview (개요)`, `Architecture (아키텍처)`      |
 
 <!-- REFERENCE_ONLY_END -->
 
@@ -388,6 +388,7 @@ describe('utilityFunction', () => {
 
 | 버전  | 날짜       | 변경 내용                                                                  |
 | ----- | ---------- | -------------------------------------------------------------------------- |
+| 0.0.4 | 2025-12-29 | 네이밍 예시 수정 (1.2_TEAPOT_DEMO→1.2_THREEJS_DEMO_TEAPOT)                 |
 | 0.0.3 | 2025-12-15 | Claude Commands 섹션 재구성 (문서 작성/검증/구현 3단계로 분리)             |
 | 0.0.2 | 2025-12-04 | 섹션 순서 재배치, REFERENCE_ONLY 마커 추가, TEMPLATE_ONLY 마커 설명 명확화 |
 | 0.0.1 | 2025-12-03 | 네이밍 규칙 섹션 추가, 상단 메타데이터 간소화, DOC_GUIDE 참조 제거         |

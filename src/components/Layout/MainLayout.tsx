@@ -21,9 +21,7 @@ export const MainLayout = (): JSX.Element => {
 
                 {/* 우측 메인 콘텐츠 영역 */}
                 <main className="flex-1 overflow-auto">
-                    <div className="p-6">
-                        <Outlet />
-                    </div>
+                    <Outlet />
                 </main>
             </div>
 

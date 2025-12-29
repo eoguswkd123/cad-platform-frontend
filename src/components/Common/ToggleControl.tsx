@@ -8,7 +8,7 @@
 import type { ReactNode } from 'react';
 import { memo, useCallback } from 'react';
 
-import { CHECKBOX_STYLES } from './constants';
+import { ACCENT_CLASSES } from './constants';
 
 import type { AccentColor } from './constants';
 
@@ -59,7 +59,7 @@ function ToggleControlComponent({
                 checked={checked}
                 onChange={handleChange}
                 aria-label={ariaLabel ?? label}
-                className={`h-4 w-4 rounded border-gray-600 bg-gray-700 ${CHECKBOX_STYLES[accentColor]}`}
+                className={`h-4 w-4 rounded border-gray-600 bg-gray-700 ${ACCENT_CLASSES[accentColor].checkbox}`}
             />
         </label>
     );

@@ -106,8 +106,10 @@ function WorkerMeshComponent({
     }, [clonedScene]);
 
     return (
-        <group ref={groupRef} position={centerOffset} scale={normalizedScale}>
-            <primitive object={clonedScene} />
+        <group ref={groupRef} scale={normalizedScale}>
+            <group position={centerOffset}>
+                <primitive object={clonedScene} />
+            </group>
         </group>
     );
 }

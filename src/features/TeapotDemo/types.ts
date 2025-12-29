@@ -3,6 +3,8 @@
  * Three.js TeapotGeometry 렌더링 예제 타입 정의
  */
 
+import type { BaseViewerConfig } from '@/hooks/useSceneControls';
+
 /** 쉐이딩 모드 */
 export type ShadingMode =
     | 'wireframe'
@@ -12,8 +14,8 @@ export type ShadingMode =
     | 'textured'
     | 'reflective';
 
-/** Teapot 설정 */
-export interface TeapotConfig {
+/** Teapot 설정 (BaseViewerConfig 확장) */
+export interface TeapotConfig extends BaseViewerConfig {
     /** 테셀레이션 레벨 (2-50) */
     tessellation: number;
     /** 쉐이딩 모드 */
@@ -24,6 +26,5 @@ export interface TeapotConfig {
     showBody: boolean;
     /** 밑바닥 표시 여부 */
     showBottom: boolean;
-    /** 자동 회전 여부 */
-    autoRotate: boolean;
+    // autoRotate, showGrid, rotateSpeed는 BaseViewerConfig에서 상속
 }

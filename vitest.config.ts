@@ -5,13 +5,11 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
     plugins: [react()],
+    cacheDir: './node_modules/.vitest',
     test: {
         environment: 'jsdom',
         globals: true,
         setupFiles: ['./tests/setup/vitest-setup.ts'],
-
-        // 성능 최적화: 캐시 활성화
-        cache: { dir: './node_modules/.vitest' },
 
         // 테스트 파일 패턴 (Co-located + Integration)
         include: [
@@ -38,12 +36,12 @@ export default defineConfig({
                 'src/main.tsx',
                 'src/vite-env.d.ts',
             ],
-            // 커버리지 임계값 (현재: MVP 기준, 목표: 70% line, 60% branch)
+            // 커버리지 임계값 (단계적 증가: 20→40→60→70)
             thresholds: {
-                statements: 20,
+                statements: 40,
                 branches: 50,
                 functions: 50,
-                lines: 20,
+                lines: 40,
             },
         },
     },

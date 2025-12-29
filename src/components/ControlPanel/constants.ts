@@ -2,8 +2,9 @@
  * ControlPanel - 공통 상수 정의
  */
 
-// Common에서 공용 상수 re-export
-export { CHECKBOX_STYLES } from '@/components/Common';
+import { Home, RotateCcw } from 'lucide-react';
+
+import type { ResetIconType } from './types';
 
 /** 회전 속도 슬라이더 설정 */
 export const SPEED_SLIDER_CONFIG = {
@@ -21,3 +22,9 @@ export const DEFAULT_LABELS = {
     reset: 'Reset',
     clear: 'Clear',
 } as const;
+
+/** 리셋 아이콘 매핑 */
+export const RESET_ICONS: Record<ResetIconType, typeof RotateCcw> = {
+    rotate: RotateCcw,
+    home: Home,
+};
