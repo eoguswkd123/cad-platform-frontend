@@ -229,8 +229,8 @@ src/
 │   │   └── index.ts
 │   └── CadViewer/         # DXF 파일 3D 뷰어 (Phase 2.1 진행중)
 │       ├── components/    # CadScene, CadMesh, LayerPanel
-│       ├── hooks/         # useDXFParser, useDXFWorker, useDxfLoader
-│       │   └── __tests__/ # useDXFParser.test.ts, useDxfLoader.test.ts
+│       ├── hooks/         # useDxfParser, useDxfWorker, useDxfLoader
+│       │   └── __tests__/ # useDxfParser.test.ts, useDxfWorker.test.ts, useDxfLoader.test.ts
 │       ├── services/      # WebWorker 및 파싱 로직
 │       │   ├── dxfParser.worker.ts  # DXF 파싱 워커
 │       │   ├── entityParsers.ts     # 엔티티별 파싱 로직
