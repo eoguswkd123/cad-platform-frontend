@@ -1,5 +1,5 @@
 /**
- * useDXFWorker.test.ts
+ * useDxfWorker.test.ts
  * CADViewer WebWorker 기반 DXF 파싱 훅 테스트
  *
  * 주요 테스트:
@@ -24,7 +24,7 @@ import {
 } from '@tests/mocks/worker';
 
 import { WORKER_THRESHOLD_BYTES } from '../../constants';
-import { useDXFWorker, shouldUseWorker } from '../useDXFWorker';
+import { useDxfWorker, shouldUseWorker } from '../useDxfWorker';
 
 import type { MockWorker } from '@tests/mocks/worker';
 
@@ -44,7 +44,7 @@ function createTestFile(
 // createTestFile이 사용됨을 명시 (향후 테스트 확장용)
 void createTestFile;
 
-describe('useDXFWorker', () => {
+describe('useDxfWorker', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         resetMockWorker();
@@ -56,7 +56,7 @@ describe('useDXFWorker', () => {
 
     describe('초기 상태', () => {
         it('초기 상태는 isLoading=false, progress=0, error=null', () => {
-            const { result } = renderHook(() => useDXFWorker());
+            const { result } = renderHook(() => useDxfWorker());
 
             expect(result.current.isLoading).toBe(false);
             expect(result.current.progress).toBe(0);
@@ -68,7 +68,7 @@ describe('useDXFWorker', () => {
         });
 
         it('반환 타입이 UseDXFWorkerReturn 인터페이스를 준수', () => {
-            const { result } = renderHook(() => useDXFWorker());
+            const { result } = renderHook(() => useDxfWorker());
 
             // 모든 필수 속성 존재 확인
             expect(result.current).toHaveProperty('parse');
@@ -83,7 +83,7 @@ describe('useDXFWorker', () => {
 
     describe('clearError', () => {
         it('clearError 호출 시 error, progress, progressStage 초기화', () => {
-            const { result } = renderHook(() => useDXFWorker());
+            const { result } = renderHook(() => useDxfWorker());
 
             // clearError 호출
             act(() => {
@@ -96,7 +96,7 @@ describe('useDXFWorker', () => {
         });
 
         it('에러 없이도 clearError 호출 가능', () => {
-            const { result } = renderHook(() => useDXFWorker());
+            const { result } = renderHook(() => useDxfWorker());
 
             // 에러 없는 상태에서 clearError 호출 (예외 없어야 함)
             expect(() => {
@@ -111,7 +111,7 @@ describe('useDXFWorker', () => {
 
     describe('cancel', () => {
         it('cancel 호출 시 상태 초기화 (Worker 없이)', () => {
-            const { result } = renderHook(() => useDXFWorker());
+            const { result } = renderHook(() => useDxfWorker());
 
             // Worker 없이 cancel 호출 (예외 없어야 함)
             expect(() => {
@@ -128,8 +128,8 @@ describe('useDXFWorker', () => {
 
     describe('훅 재사용성', () => {
         it('훅은 여러 컴포넌트에서 독립적으로 사용 가능', () => {
-            const { result: result1 } = renderHook(() => useDXFWorker());
-            const { result: result2 } = renderHook(() => useDXFWorker());
+            const { result: result1 } = renderHook(() => useDxfWorker());
+            const { result: result2 } = renderHook(() => useDxfWorker());
 
             // 각 인스턴스가 독립적인 상태를 가짐
             expect(result1.current.isLoading).toBe(false);

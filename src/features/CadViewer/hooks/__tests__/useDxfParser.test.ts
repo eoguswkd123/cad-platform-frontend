@@ -1,5 +1,5 @@
 /**
- * useDXFParser.test.ts
+ * useDxfParser.test.ts
  * CADViewer DXF 파싱 훅 테스트
  *
  * 주요 테스트:
@@ -14,7 +14,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { useDXFParser } from '../useDXFParser';
+import { useDxfParser } from '../useDxfParser';
 
 // dxf-parser 모듈 모킹 - (globalThis.__dxfParserMock__ 사용)
 // vi.mock은 호이스팅되므로 globalThis를 통해 런타임에 값을 전달
@@ -79,7 +79,7 @@ function createDXFFile(
 // 모킹된 DXF 파싱 결과 - 에러 테스트용
 const MOCK_DXF_INVALID_RESULT = null; // 파싱 실패 시 (null 또는 entities 없음)
 
-describe('useDXFParser', () => {
+describe('useDxfParser', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         // 모킹 설정 초기화
@@ -88,7 +88,7 @@ describe('useDXFParser', () => {
 
     describe('초기 상태', () => {
         it('초기 상태는 isLoading=false, error=null', () => {
-            const { result } = renderHook(() => useDXFParser());
+            const { result } = renderHook(() => useDxfParser());
 
             expect(result.current.isLoading).toBe(false);
             expect(result.current.error).toBeNull();
@@ -97,7 +97,7 @@ describe('useDXFParser', () => {
         });
 
         it('parse 함수는 async 함수', () => {
-            const { result } = renderHook(() => useDXFParser());
+            const { result } = renderHook(() => useDxfParser());
 
             // parse는 함수이고 호출 시 Promise 반환
             expect(typeof result.current.parse).toBe('function');
@@ -124,7 +124,7 @@ describe('useDXFParser', () => {
             setMockParseResult(MOCK_DXF_INVALID_RESULT);
 
             const file = createDXFFile('invalid content');
-            const { result } = renderHook(() => useDXFParser());
+            const { result } = renderHook(() => useDxfParser());
 
             let caughtError: unknown;
             await act(async () => {
@@ -145,7 +145,7 @@ describe('useDXFParser', () => {
             setMockShouldThrow(true);
 
             const file = createDXFFile('invalid content');
-            const { result } = renderHook(() => useDXFParser());
+            const { result } = renderHook(() => useDxfParser());
 
             let caughtError: unknown;
             await act(async () => {
@@ -165,7 +165,7 @@ describe('useDXFParser', () => {
             setMockParseResult(MOCK_DXF_INVALID_RESULT);
 
             const file = createDXFFile('invalid content');
-            const { result } = renderHook(() => useDXFParser());
+            const { result } = renderHook(() => useDxfParser());
 
             await act(async () => {
                 try {
@@ -186,7 +186,7 @@ describe('useDXFParser', () => {
             setMockParseResult(MOCK_DXF_INVALID_RESULT);
 
             const file = createDXFFile('invalid content');
-            const { result } = renderHook(() => useDXFParser());
+            const { result } = renderHook(() => useDxfParser());
 
             // 에러 발생
             await act(async () => {
@@ -208,7 +208,7 @@ describe('useDXFParser', () => {
         });
 
         it('에러 없이도 clearError 호출 가능', () => {
-            const { result } = renderHook(() => useDXFParser());
+            const { result } = renderHook(() => useDxfParser());
 
             // 에러 없는 상태에서 clearError 호출
             act(() => {
@@ -225,7 +225,7 @@ describe('useDXFParser', () => {
             setMockParseResult(MOCK_DXF_INVALID_RESULT);
 
             const file = createDXFFile('invalid content');
-            const { result } = renderHook(() => useDXFParser());
+            const { result } = renderHook(() => useDxfParser());
 
             // 첫 번째 시도
             await act(async () => {

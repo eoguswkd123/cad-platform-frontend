@@ -6,14 +6,13 @@
 import { useState, useCallback } from 'react';
 
 import type { SampleInfo } from '@/components/FilePanel';
+import type { ParsedCADData, LayerInfo } from '@/types/cad';
 import { validateSecureUrl, validateExtension } from '@/utils';
+import { calculateCameraDistance } from '@/utils/cad';
 
 import { CAMERA_CONFIG, URL_SECURITY_CONFIG } from '../constants';
-import { calculateCameraDistance } from '../utils/dxfToGeometry';
 
-import { useDXFWorker } from './useDXFWorker';
-
-import type { ParsedCADData, LayerInfo } from '../types';
+import { useDxfWorker } from './useDxfWorker';
 
 /** Hook 반환 타입 */
 export interface UseDxfLoaderReturn {
@@ -67,7 +66,7 @@ export function useDxfLoader(
 
     // DXF 파서 훅
     const { parse, isLoading, progress, progressStage, error, clearError } =
-        useDXFWorker();
+        useDxfWorker();
 
     // 상태
     const [cadData, setCadData] = useState<ParsedCADData | null>(null);

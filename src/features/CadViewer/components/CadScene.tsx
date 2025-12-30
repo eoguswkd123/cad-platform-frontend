@@ -3,7 +3,7 @@
  *
  * 3D 캔버스, 파일 업로드, 컨트롤, 레이어 패널을 오케스트레이션하는 메인 컨테이너
  *
- * @see {@link CadMesh} - 3D 렌더링
+ * @see {@link CadMeshViewer} - 3D 렌더링 오케스트레이터
  * @see {@link SceneCanvas} - 공통 3D 캔버스
  */
 
@@ -11,11 +11,13 @@ import { useCallback, lazy, Suspense } from 'react';
 
 import { FileText, Layers } from 'lucide-react';
 
+import { CadMeshViewer } from '@/components/CadMeshViewer';
 import { LoadingSpinner, PanelErrorBoundary } from '@/components/Common';
 import { ControlPanelViewer } from '@/components/ControlPanelViewer';
 import { formatFileSize } from '@/components/FilePanel';
 import { FilePanelViewer } from '@/components/FilePanelViewer';
 import { useSceneControls } from '@/hooks/useSceneControls';
+import type { ParsedCADData, CadRenderMode } from '@/types/cad';
 
 // React.lazy - SceneCanvas만 적용 (Three.js 무거운 의존성)
 const SceneCanvas = lazy(() =>
@@ -36,10 +38,9 @@ import {
 import { useDxfLoader } from '../hooks/useDxfLoader';
 import { DXF_SAMPLES } from '../utils/dxfSamples';
 
-import { CadMesh } from './CadMesh';
 import { LayerPanel } from './LayerPanel';
 
-import type { ParsedCADData, CadViewerConfig, CadRenderMode } from '../types';
+import type { CadViewerConfig } from '../types';
 
 export function CadScene() {
     // 공통 훅 사용
@@ -101,7 +102,7 @@ export function CadScene() {
                 >
                     {/* Cad 모델 */}
                     {cadData && (
-                        <CadMesh
+                        <CadMeshViewer
                             data={cadData}
                             center={true}
                             layers={layers}
