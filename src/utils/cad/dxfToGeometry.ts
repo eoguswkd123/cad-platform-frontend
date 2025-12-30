@@ -9,20 +9,32 @@
  */
 
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-import { DEFAULT_BOUNDS, getLODSegments, HATCH_CONFIG } from '../constants';
-
+import {
+    DEFAULT_BOUNDS,
+    getLODSegments,
+    HATCH_CONFIG,
+    TEXTURE_CACHE_CONFIG,
+} from '@/constants/cad';
 import type {
     ParsedLine,
     ParsedCircle,
     ParsedArc,
     ParsedPolyline,
     ParsedHatch,
+    ParsedEllipse,
+    ParsedSpline,
     HatchBoundaryPath,
     ParsedCADData,
     BoundingBox,
     Point3D,
-} from '../types';
+} from '@/types/cad';
+
+import {
+    getPatternTextureCache,
+    resetPatternTextureCache,
+} from './TextureCacheManager';
 
 // ============================================================
 // 인덱스 버퍼 유틸리티 (메모리 최적화)
@@ -486,14 +498,6 @@ export function hatchesToSolidGeometries(
 }
 
 /**
- * 패턴 텍스처 캐시 (성능 최적화)
- * - 동일 패턴 파라미터에 대해 텍스처 재사용
- * - LRU 방식으로 최대 100개 유지
- */
-const patternTextureCache = new Map<string, THREE.CanvasTexture>();
-const PATTERN_CACHE_MAX_SIZE = 100;
-
-/**
  * 패턴 텍스처 캐시 키 생성
  */
 function getPatternCacheKey(
@@ -559,9 +563,12 @@ function createPatternTextureInternal(
 }
 
 /**
- * HATCH 패턴 텍스처 생성 (캐시 적용)
+ * HATCH 패턴 텍스처 생성 (LRU 캐시 적용)
  * - 동일 패턴 파라미터에 대해 캐시된 텍스처 반환
  * - 캐시 미스 시 새로 생성하고 캐시에 저장
+ * - LRU 기반 자동 eviction (수동 cleanup 불필요)
+ *
+ * @see {@link getPatternTextureCache} LRU 캐시 구현
  */
 export function createPatternTexture(
     hatch: ParsedHatch,
@@ -573,38 +580,33 @@ export function createPatternTexture(
         color
     );
 
-    // 캐시 히트
-    const cached = patternTextureCache.get(cacheKey);
+    // LRU 캐시 조회 (히트 시 MRU로 이동)
+    const cache = getPatternTextureCache(TEXTURE_CACHE_CONFIG);
+    const cached = cache.get(cacheKey);
     if (cached) {
-        return cached;
+        return cached as THREE.CanvasTexture;
     }
 
     // 캐시 미스 - 새 텍스처 생성
     const texture = createPatternTextureInternal(hatch, color);
 
-    // 캐시 크기 제한 (LRU: 가장 오래된 항목 제거)
-    if (patternTextureCache.size >= PATTERN_CACHE_MAX_SIZE) {
-        const firstKey = patternTextureCache.keys().next().value;
-        if (firstKey) {
-            const oldTexture = patternTextureCache.get(firstKey);
-            oldTexture?.dispose();
-            patternTextureCache.delete(firstKey);
-        }
-    }
+    // LRU 캐시에 저장 (용량 초과 시 자동 eviction)
+    const textureMemory =
+        HATCH_CONFIG.patternTextureSize * HATCH_CONFIG.patternTextureSize * 4; // RGBA
+    cache.set(cacheKey, texture, textureMemory);
 
-    patternTextureCache.set(cacheKey, texture);
     return texture;
 }
 
 /**
  * 패턴 텍스처 캐시 클리어
- * - 컴포넌트 언마운트 시 호출하여 메모리 해제
+ * - LRU 캐시 기반 자동 관리로 일반적으로 호출 불필요
+ * - 강제 초기화가 필요한 경우에만 사용 (예: 테스트, 메모리 긴급 해제)
+ *
+ * @deprecated LRU 캐시 자동 관리로 수동 호출 불필요
  */
 export function clearPatternTextureCache(): void {
-    for (const texture of patternTextureCache.values()) {
-        texture.dispose();
-    }
-    patternTextureCache.clear();
+    resetPatternTextureCache();
 }
 
 /**
@@ -624,7 +626,9 @@ export function cadDataToGeometry(
         data.lines.length +
         data.circles.length +
         data.arcs.length +
-        data.polylines.length;
+        data.polylines.length +
+        data.ellipses.length +
+        data.splines.length;
     const segments = segmentsOverride ?? getLODSegments(totalEntities);
 
     // LINE 지오메트리
@@ -647,13 +651,24 @@ export function cadDataToGeometry(
         geometries.push(polylinesToGeometry(data.polylines));
     }
 
+    // Phase 2.1.4: ELLIPSE 지오메트리 (LOD 적용)
+    if (data.ellipses.length > 0) {
+        geometries.push(ellipsesToGeometry(data.ellipses, segments));
+    }
+
+    // Phase 2.1.4: SPLINE 지오메트리 (LOD 적용)
+    if (data.splines.length > 0) {
+        geometries.push(splinesToGeometry(data.splines, segments));
+    }
+
     // 지오메트리가 없으면 빈 지오메트리 반환
     if (geometries.length === 0) {
         return new THREE.BufferGeometry();
     }
 
-    // 모든 지오메트리를 하나로 병합
-    const mergedGeometry = mergeBufferGeometries(geometries);
+    // 모든 지오메트리를 하나로 병합 (Three.js 공식 유틸리티 사용)
+    const mergedGeometry =
+        mergeGeometries(geometries) ?? new THREE.BufferGeometry();
     mergedGeometry.computeBoundingSphere();
 
     // 메모리 효율: 개별 지오메트리 정리
@@ -664,41 +679,6 @@ export function cadDataToGeometry(
     }
 
     return mergedGeometry;
-}
-
-/**
- * 여러 BufferGeometry를 하나로 병합
- */
-function mergeBufferGeometries(
-    geometries: THREE.BufferGeometry[]
-): THREE.BufferGeometry {
-    if (geometries.length === 1) {
-        return geometries[0]!;
-    }
-
-    // 모든 정점을 모음
-    const allVertices: number[] = [];
-
-    for (const geometry of geometries) {
-        const positions = geometry.getAttribute('position');
-        if (positions) {
-            for (let i = 0; i < positions.count; i++) {
-                allVertices.push(
-                    positions.getX(i),
-                    positions.getY(i),
-                    positions.getZ(i)
-                );
-            }
-        }
-    }
-
-    const merged = new THREE.BufferGeometry();
-    merged.setAttribute(
-        'position',
-        new THREE.Float32BufferAttribute(allVertices, 3)
-    );
-
-    return merged;
 }
 
 /**
@@ -844,4 +824,136 @@ export function calculateCameraDistance(
 
     // 약간의 여유 공간 추가
     return distance * 1.5;
+}
+
+// ============================================================
+// Phase 2.1.4: 추가 엔티티 지오메트리 변환
+// ============================================================
+
+/**
+ * ELLIPSE 엔티티 배열을 Three.js BufferGeometry로 변환
+ * DXF 타원은 중심, 장축 끝점(상대 좌표), 단축/장축 비율로 정의
+ *
+ * @param ellipses 파싱된 ELLIPSE 배열
+ * @param segments 곡선 세그먼트 수 (기본값: 64)
+ */
+export function ellipsesToGeometry(
+    ellipses: ParsedEllipse[],
+    segments: number = 64
+): THREE.BufferGeometry {
+    if (ellipses.length === 0) {
+        return new THREE.BufferGeometry();
+    }
+
+    const vm = createVertexMap();
+
+    for (const ellipse of ellipses) {
+        // 장축 길이 및 회전 각도 계산
+        const majorLength = Math.sqrt(
+            ellipse.majorAxisEnd.x ** 2 + ellipse.majorAxisEnd.y ** 2
+        );
+        const minorLength = majorLength * ellipse.minorAxisRatio;
+        const rotation = Math.atan2(
+            ellipse.majorAxisEnd.y,
+            ellipse.majorAxisEnd.x
+        );
+
+        // 전체 타원인지 부분 호인지 확인
+        const isFullEllipse =
+            Math.abs(ellipse.endParam - ellipse.startParam - Math.PI * 2) <
+            0.001;
+
+        // EllipseCurve 생성
+        const curve = new THREE.EllipseCurve(
+            0, // 중심에서 시작 (나중에 변환)
+            0,
+            majorLength,
+            minorLength,
+            ellipse.startParam,
+            ellipse.endParam,
+            false,
+            rotation
+        );
+
+        const points = curve.getPoints(segments);
+        const z = ellipse.center.z;
+        const cx = ellipse.center.x;
+        const cy = ellipse.center.y;
+
+        // 점들을 중심 기준으로 변환하여 라인 세그먼트로 연결
+        for (let i = 0; i < points.length - 1; i++) {
+            const p1 = points[i]!;
+            const p2 = points[i + 1]!;
+            addEdge(vm, p1.x + cx, p1.y + cy, z, p2.x + cx, p2.y + cy, z);
+        }
+
+        // 전체 타원이면 마지막 점과 첫 점 연결
+        if (isFullEllipse && points.length > 1) {
+            const lastPt = points[points.length - 1]!;
+            const firstPt = points[0]!;
+            addEdge(
+                vm,
+                lastPt.x + cx,
+                lastPt.y + cy,
+                z,
+                firstPt.x + cx,
+                firstPt.y + cy,
+                z
+            );
+        }
+    }
+
+    return vertexMapToGeometry(vm);
+}
+
+/**
+ * SPLINE 엔티티 배열을 Three.js BufferGeometry로 변환
+ * CatmullRomCurve3을 사용하여 부드러운 곡선 생성
+ *
+ * @param splines 파싱된 SPLINE 배열
+ * @param segments 곡선 세그먼트 수 (기본값: 50)
+ */
+export function splinesToGeometry(
+    splines: ParsedSpline[],
+    segments: number = 50
+): THREE.BufferGeometry {
+    if (splines.length === 0) {
+        return new THREE.BufferGeometry();
+    }
+
+    const vm = createVertexMap();
+
+    for (const spline of splines) {
+        if (spline.controlPoints.length < 2) continue;
+
+        // 제어점을 THREE.Vector3로 변환
+        const controlVectors = spline.controlPoints.map(
+            (p) => new THREE.Vector3(p.x, p.y, p.z)
+        );
+
+        // CatmullRomCurve3으로 부드러운 곡선 생성
+        // centripetal 타입이 일반적으로 가장 자연스러운 결과 제공
+        const curve = new THREE.CatmullRomCurve3(
+            controlVectors,
+            spline.closed,
+            'centripetal',
+            0.5
+        );
+
+        // 세그먼트 수는 제어점 수에 비례하여 조절
+        const adaptiveSegments = Math.max(
+            segments,
+            spline.controlPoints.length * 10
+        );
+        const points = curve.getPoints(adaptiveSegments);
+
+        // 점들을 라인 세그먼트로 연결
+        for (let i = 0; i < points.length - 1; i++) {
+            const p1 = points[i]!;
+            const p2 = points[i + 1]!;
+            addEdge(vm, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+        }
+    }
+
+    return vertexMapToGeometry(vm);
 }

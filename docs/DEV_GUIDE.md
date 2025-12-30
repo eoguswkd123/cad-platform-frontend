@@ -695,7 +695,7 @@ npm run test -- --run                 # 1회 실행 (watch 없이)
 | --------------------- | -------------------------- | ------------ | ----------------------- |
 | **Unit** (순수 함수)  | `feature/__tests__/`       | `*.test.ts`  | `useDxfLoader.test.ts`  |
 | **Component** (React) | `feature/__tests__/`       | `*.test.tsx` | `CADScene.test.tsx`     |
-| **Hook**              | `feature/hooks/__tests__/` | `*.test.ts`  | `useDXFParser.test.ts`  |
+| **Hook**              | `feature/hooks/__tests__/` | `*.test.ts`  | `useDxfParser.test.ts`  |
 | **Integration**       | `tests/integration/`       | `*.test.tsx` | `cad-workflow.test.tsx` |
 | **Performance**       | `tests/scripts/`           | `*.cjs`      | `perf-test-dxf.cjs`     |
 

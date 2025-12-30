@@ -8,6 +8,21 @@
 
 import DxfParser from 'dxf-parser';
 
+import type {
+    BoundingBox,
+    LayerInfo,
+    ParsedArc,
+    ParsedCircle,
+    ParsedHatch,
+    ParsedLine,
+    ParsedPolyline,
+    ParsedText,
+    ParsedMText,
+    ParsedEllipse,
+    ParsedSpline,
+    ParsedDimension,
+} from '@/types/cad';
+
 import { DEFAULT_BOUNDS, DEFAULT_LAYER_COLOR } from '../constants';
 
 import { aciToHex, getArcBounds } from './entityMath';
@@ -17,19 +32,17 @@ import {
     parseHatch,
     parseLine,
     parsePolyline,
+    parseText,
+    parseMText,
+    parseEllipse,
+    parseSpline,
+    parseDimension,
     getTotalEntityCount,
 } from './entityParsers';
 
 import type {
-    BoundingBox,
     DXFLibEntity,
     DXFLibLayer,
-    LayerInfo,
-    ParsedArc,
-    ParsedCircle,
-    ParsedHatch,
-    ParsedLine,
-    ParsedPolyline,
     WorkerErrorCode,
     WorkerRequest,
     WorkerResponse,
@@ -283,6 +296,12 @@ function parseDXF(text: string, fileName: string, fileSize: number): void {
         const arcs: ParsedArc[] = [];
         const polylines: ParsedPolyline[] = [];
         const hatches: ParsedHatch[] = [];
+        // Phase 2.1.4: 추가 엔티티 배열
+        const texts: ParsedText[] = [];
+        const mtexts: ParsedMText[] = [];
+        const ellipses: ParsedEllipse[] = [];
+        const splines: ParsedSpline[] = [];
+        const dimensions: ParsedDimension[] = [];
 
         const entities = dxf.entities as DXFLibEntity[];
         const totalEntities = entities.length;
@@ -339,6 +358,47 @@ function parseDXF(text: string, fileName: string, fileSize: number): void {
                     }
                     break;
                 }
+                // Phase 2.1.4: 추가 엔티티 타입
+                case 'TEXT': {
+                    const text = parseText(entity);
+                    if (text) {
+                        texts.push(text);
+                        countLayer(layers, entity.layer);
+                    }
+                    break;
+                }
+                case 'MTEXT': {
+                    const mtext = parseMText(entity);
+                    if (mtext) {
+                        mtexts.push(mtext);
+                        countLayer(layers, entity.layer);
+                    }
+                    break;
+                }
+                case 'ELLIPSE': {
+                    const ellipse = parseEllipse(entity);
+                    if (ellipse) {
+                        ellipses.push(ellipse);
+                        countLayer(layers, entity.layer);
+                    }
+                    break;
+                }
+                case 'SPLINE': {
+                    const spline = parseSpline(entity);
+                    if (spline) {
+                        splines.push(spline);
+                        countLayer(layers, entity.layer);
+                    }
+                    break;
+                }
+                case 'DIMENSION': {
+                    const dimension = parseDimension(entity);
+                    if (dimension) {
+                        dimensions.push(dimension);
+                        countLayer(layers, entity.layer);
+                    }
+                    break;
+                }
                 // 지원하지 않는 엔티티 타입은 무시
             }
         }
@@ -349,6 +409,12 @@ function parseDXF(text: string, fileName: string, fileSize: number): void {
             arcs,
             polylines,
             hatches,
+            // Phase 2.1.4: 추가 엔티티
+            texts,
+            mtexts,
+            ellipses,
+            splines,
+            dimensions,
         });
 
         if (totalEntityCount === 0) {
@@ -370,6 +436,12 @@ function parseDXF(text: string, fileName: string, fileSize: number): void {
                 arcs,
                 polylines,
                 hatches,
+                // Phase 2.1.4: 추가 엔티티
+                texts,
+                mtexts,
+                ellipses,
+                splines,
+                dimensions,
                 bounds: calculateBounds(
                     lines,
                     circles,

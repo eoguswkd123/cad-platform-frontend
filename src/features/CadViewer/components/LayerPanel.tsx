@@ -8,7 +8,7 @@
 
 import { Layers, Eye, EyeOff } from 'lucide-react';
 
-import type { LayerInfo } from '../types';
+import type { LayerInfo } from '@/types/cad';
 
 interface LayerPanelProps {
     /** 레이어 정보 맵 */

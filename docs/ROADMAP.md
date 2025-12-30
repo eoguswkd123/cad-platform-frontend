@@ -1,7 +1,7 @@
 # Roadmap
 
-> **Version**: 0.1.11
-> **Last Updated**: 2025-12-22
+> **Version**: 0.1.12
+> **Last Updated**: 2025-12-29
 
 CAD Viewer 프로젝트 로드맵 - DevOps 모범사례 적용 버전
 
@@ -10,22 +10,22 @@ CAD Viewer 프로젝트 로드맵 - DevOps 모범사례 적용 버전
 ## Table of Contents
 
 - [Project Vision](#project-vision)
-- [Phase 1: Foundation](#phase-1-foundation--완료)
+- [Phase 1: Foundation](#phase-1-foundation-완료)
     - [1.1 CI/CD + DevOps](#11-cicd--devops)
     - [1.2 Three.js Demo (Teapot)](#12-threejs-demo-teapot)
-- [Phase 2: CAD Viewer](#phase-2-cad-viewer--진행중)
-    - [2.1 DXF Viewer](#21-dxf-viewer)
-    - [2.2 PDF Viewer](#22-pdf-viewer)
-- [Phase 3: Backend](#phase-3-backend--계획됨)
+- [Phase 2: CAD Viewer](#phase-2-cad-viewer-진행중)
+    - [2.1 DXF Viewer](#21-dxf-viewer-진행중)
+    - [2.2 PDF Viewer](#22-pdf-viewer-차단됨)
+- [Phase 3: Backend](#phase-3-backend-계획됨)
     - [3.1 Core Backend](#31-core-backend)
-    - [3.2 Processing Engine](#32-processing-engine)
-    - [3.3 Communication & Ops](#33-communication--ops)
-- [Phase 4: Synchronization](#phase-4-synchronization--차단됨)
-- [Phase 5: Performance & Testing](#phase-5-performance--testing--계획됨)
+    - [3.2 Processing Engine](#32-processing-engine-진행중)
+    - [3.3 Communication & Ops](#33-communication--ops-차단됨)
+- [Phase 4: Synchronization](#phase-4-synchronization-차단됨)
+- [Phase 5: Performance & Testing](#phase-5-performance--testing-계획됨)
     - [5.1 Performance Optimization](#51-performance-optimization)
     - [5.2 Staging & E2E Testing](#52-staging--e2e-testing)
-- [Phase 6: Enhancement](#phase-6-enhancement--계획됨)
-- [Phase 7: Production & Scale](#phase-7-production--scale--계획됨)
+- [Phase 6: Enhancement](#phase-6-enhancement-계획됨)
+- [Phase 7: Production & Scale](#phase-7-production--scale-계획됨)
 - [Risks & Mitigation](#risks--mitigation)
 - [Technical Decisions Summary](#technical-decisions-summary)
 - [Related Documents](#related-documents)
@@ -216,7 +216,7 @@ DXF 파일을 **프론트엔드에서** 파싱하여 3D 와이어프레임으로
 | 2.1.2 ARC/CIRCLE  | 원호, 원 엔티티 지원                    | ✅ 완료   |
 | 2.1.2 POLYLINE    | 연결선 (bulge 포함)                     | ✅ 완료   |
 | 2.1.3 HATCH (2D)  | 면 채우기 + 렌더링 모드 토글            | ✅ 완료   |
-| 2.1.4 추가 엔티티 | TEXT, MTEXT, DIMENSION, SPLINE, ELLIPSE | 📋 계획됨 |
+| 2.1.4 추가 엔티티 | TEXT, MTEXT, DIMENSION, SPLINE, ELLIPSE | 🔄 진행중 |
 | 2.1.5 Layer Panel | 레이어 표시/숨김 UI, DXF 색상 매핑      | ✅ 완료   |
 | 2.1.6 HATCH 3D    | 2D HATCH → 3D 돌출 (ExtrudeGeometry)    | ⏳ 예정   |
 | 2.1.7 ShadingMode | 3D 메쉬 Material 적용 (4가지 모드)      | ⏳ 예정   |
@@ -230,7 +230,7 @@ Phase 2.1: DXF CAD Viewer
 ├── 2.1.1 MVP (LINE 엔티티)                           ✅ 완료
 ├── 2.1.2 엔티티 확장 I (ARC, CIRCLE, POLYLINE)       ✅ 완료
 ├── 2.1.3 엔티티 확장 II (HATCH 2D + 렌더링 모드)     ✅ 완료
-├── 2.1.4 추가 엔티티 (TEXT, MTEXT, DIMENSION 등)     📋 계획됨
+├── 2.1.4 추가 엔티티 (TEXT, MTEXT, DIMENSION 등)     🔄 진행중
 ├── 2.1.5 레이어 기능                                 ✅ 완료
 ├── 2.1.6 HATCH 3D Extrusion                          ⏳ 예정
 ├── 2.1.7 ShadingMode 적용                            ⏳ 예정
@@ -270,15 +270,21 @@ Phase 2.1: DXF CAD Viewer
 
 | Test File             | Description       | Status  |
 | --------------------- | ----------------- | ------- |
-| useDXFParser.test.ts  | DXF 파서 유틸리티 | ✅ 완료 |
+| useDxfParser.test.ts  | DXF 파서 훅       | ✅ 완료 |
+| useDxfWorker.test.ts  | WebWorker 파싱 훅 | ✅ 완료 |
+| useDxfLoader.test.ts  | DXF 로더 훅       | ✅ 완료 |
 | dxfToGeometry.test.ts | 지오메트리 변환   | ✅ 완료 |
+| CadScene.test.tsx     | 메인 컴포넌트     | ✅ 완료 |
+| LayerPanel.test.tsx   | 레이어 패널 UI    | ✅ 완료 |
 | validators.test.ts    | 파일 검증 로직    | ✅ 완료 |
 
 #### Current Test Coverage
 
 | Module            | Coverage | Target | Status |
 | ----------------- | -------- | ------ | ------ |
-| useDXFParser.ts   | 100%     | 80%    | ✅     |
+| useDxfParser.ts   | 100%     | 80%    | ✅     |
+| useDxfWorker.ts   | ~80%     | 80%    | ✅     |
+| useDxfLoader.ts   | ~85%     | 80%    | ✅     |
 | dxfToGeometry.ts  | 98.5%    | 80%    | ✅     |
 | validators.ts     | 96.2%    | 80%    | ✅     |
 | Overall CADViewer | 98.29%   | 80%    | ✅     |
@@ -1198,6 +1204,7 @@ UX 개선, 품질 향상, 접근성
 
 | 버전   | 날짜       | 변경 내용                                                                                                                                                                                                                                                                                   |
 | ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.1.12 | 2025-12-29 | Phase 2.1.4 착수: 추가 엔티티 (TEXT, MTEXT, ELLIPSE, SPLINE, DIMENSION) 구현 시작, 상태 📋→🔄 변경                                                                                                                                                                                          |
 | 0.1.11 | 2025-12-22 | Phase 2.1 마일스톤 재배치: 2.1.6 HATCH 3D, 2.1.7 ShadingMode 신규 추가, 성능 최적화(2.1.8)/Unit 테스트(2.1.9) 3D 포함 재진행으로 이동, 2.1.4 추가 엔티티 계획 추가                                                                                                                          |
 | 0.1.10 | 2025-12-18 | Phase 2.1.3 HATCH 완료 상태 반영, Acceptance Criteria 업데이트                                                                                                                                                                                                                              |
 | 0.1.9  | 2025-12-17 | Phase 2.1.3 HATCH 엔티티 마일스톤 추가 (엔티티 연속 배치), 번호 재정렬 (2.1.3 HATCH → 2.1.4 레이어 → 2.1.5 성능 → 2.1.6 테스트), Phase 2.1 상태 변경 (✅→🔄 진행중), 렌더링 모드 토글 기능 계획 추가                                                                                        |

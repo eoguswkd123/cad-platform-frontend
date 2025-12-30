@@ -11,18 +11,26 @@ import { useDxfLoader } from '../useDxfLoader';
 
 import type { ParsedCADData } from '../../types';
 
-// Mock useDXFWorker
+// Mock useDxfWorker
 const mockParse = vi.fn();
 const mockClearError = vi.fn();
+const mockCancel = vi.fn();
 
-vi.mock('../useDXFWorker', () => ({
-    useDXFWorker: () => ({
+vi.mock('../useDxfWorker', () => ({
+    useDxfWorker: () => ({
         parse: mockParse,
         isLoading: false,
         progress: 0,
         progressStage: '',
         error: null,
         clearError: mockClearError,
+        cancel: mockCancel,
+        retryState: {
+            attempt: 0,
+            maxAttempts: 4,
+            isRetrying: false,
+            lastErrorCode: null,
+        },
     }),
 }));
 
@@ -37,7 +45,7 @@ vi.mock('@/utils', () => ({
 }));
 
 // Mock calculateCameraDistance
-vi.mock('../../utils/dxfToGeometry', () => ({
+vi.mock('@/utils/cad', () => ({
     calculateCameraDistance: vi.fn(() => 500),
 }));
 
@@ -60,6 +68,11 @@ const createMockCadData = (
     arcs: [],
     polylines: [],
     hatches: [],
+    texts: [],
+    mtexts: [],
+    ellipses: [],
+    splines: [],
+    dimensions: [],
     bounds: {
         min: { x: 0, y: 0, z: 0 },
         max: { x: 100, y: 100, z: 0 },

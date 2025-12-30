@@ -7,17 +7,28 @@
  */
 
 import type {
-    DXFLibEntity,
-    DXFLibHatchBoundary,
-    DXFLibPoint,
+    DimensionType,
     HatchBoundaryPath,
+    MTextAttachment,
     ParsedArc,
     ParsedCircle,
+    ParsedDimension,
+    ParsedEllipse,
     ParsedHatch,
     ParsedLine,
+    ParsedMText,
     ParsedPolyline,
+    ParsedSpline,
+    ParsedText,
     Point3D,
-} from '../types';
+    TextHorizontalAlignment,
+} from '@/types/cad';
+
+import type { DXFLibEntity } from '../types';
+import type {
+    DXFLibHatchBoundary,
+    DXFLibPoint,
+} from '../types/dxfEntity/library';
 
 // ============================================================
 // 유틸리티 함수
@@ -233,6 +244,317 @@ export function parseHatch(entity: DXFLibEntity): ParsedHatch | null {
 }
 
 // ============================================================
+// Phase 2.1.4: 추가 엔티티 파싱 함수
+// ============================================================
+
+/**
+ * TEXT 수평 정렬 매핑
+ * DXF 그룹 코드 72: 0=left, 1=center, 2=right
+ */
+function mapTextAlignment(code: number | undefined): TextHorizontalAlignment {
+    switch (code) {
+        case 1:
+            return 'center';
+        case 2:
+            return 'right';
+        default:
+            return 'left';
+    }
+}
+
+/**
+ * TEXT 엔티티 파싱
+ * @param entity DXF 라이브러리 엔티티
+ * @returns 파싱된 TEXT 또는 유효하지 않으면 null
+ */
+export function parseText(entity: DXFLibEntity): ParsedText | null {
+    const content = entity.text;
+
+    // 빈 텍스트 검증
+    if (!content || content.trim() === '') {
+        if (import.meta.env?.DEV) {
+            console.warn('Invalid TEXT entity: empty content', entity);
+        }
+        return null;
+    }
+
+    const height = entity.textHeight ?? 1;
+
+    // 유효하지 않은 height 검증 (음수, 0, NaN, Infinity)
+    if (height <= 0 || !isFinite(height)) {
+        if (import.meta.env?.DEV) {
+            console.warn('Invalid TEXT entity: invalid height', {
+                height,
+                entity,
+            });
+        }
+        return null;
+    }
+
+    return {
+        content,
+        position: toPoint3D(entity.center ?? entity.start),
+        height,
+        rotation: entity.textRotation ?? 0,
+        alignment: mapTextAlignment(entity.horizontalJustification),
+        styleName: entity.textStyleName,
+        layer: entity.layer,
+    };
+}
+
+/**
+ * MTEXT Attachment Point 매핑
+ * DXF 그룹 코드 71: 1-9 (3x3 grid)
+ */
+function mapMTextAttachment(code: number | undefined): MTextAttachment {
+    switch (code) {
+        case 1:
+            return 'top-left';
+        case 2:
+            return 'top-center';
+        case 3:
+            return 'top-right';
+        case 4:
+            return 'middle-left';
+        case 5:
+            return 'middle-center';
+        case 6:
+            return 'middle-right';
+        case 7:
+            return 'bottom-left';
+        case 8:
+            return 'bottom-center';
+        case 9:
+            return 'bottom-right';
+        default:
+            return 'top-left';
+    }
+}
+
+/**
+ * MTEXT 서식 코드 파싱
+ * DXF 특수 문자 및 서식 코드를 일반 텍스트로 변환
+ */
+export function parseMTextFormatting(rawContent: string): string {
+    let content = rawContent;
+
+    // DXF 특수 문자 변환
+    content = content.replace(/%%c/gi, 'Ø'); // 지름 기호
+    content = content.replace(/%%d/gi, '°'); // 도 기호
+    content = content.replace(/%%p/gi, '±'); // 플러스마이너스 기호
+    content = content.replace(/%%u/gi, ''); // 밑줄 시작 (제거)
+    content = content.replace(/%%o/gi, ''); // 윗줄 시작 (제거)
+    content = content.replace(/%%%/g, '%'); // 퍼센트 기호
+
+    // MTEXT 서식 코드 제거/변환
+    content = content.replace(/\\P/g, '\n'); // 줄바꿈
+    content = content.replace(/\\~/g, ' '); // 비분리 공백
+    content = content.replace(/\\\\/g, '\\'); // 백슬래시
+    content = content.replace(/\\{/g, '{'); // 중괄호
+    content = content.replace(/\\}/g, '}'); // 중괄호
+
+    // 서식 코드 제거 (폰트, 색상, 높이 등)
+    content = content.replace(/\\[fFcCHhWwQqAaTtLlOo][^;]*;/g, '');
+
+    // 스택/분수 표현 단순화: \S1/2; → 1/2
+    content = content.replace(/\\S([^;]*);/g, '$1');
+
+    // 중괄호 그룹 제거 (서식 그룹)
+    content = content.replace(/[{}]/g, '');
+
+    return content.trim();
+}
+
+/**
+ * MTEXT 엔티티 파싱
+ * @param entity DXF 라이브러리 엔티티
+ * @returns 파싱된 MTEXT 또는 유효하지 않으면 null
+ */
+export function parseMText(entity: DXFLibEntity): ParsedMText | null {
+    const rawContent = entity.text;
+
+    // 빈 텍스트 검증
+    if (!rawContent || rawContent.trim() === '') {
+        if (import.meta.env?.DEV) {
+            console.warn('Invalid MTEXT entity: empty content', entity);
+        }
+        return null;
+    }
+
+    const height = entity.textHeight ?? 1;
+
+    // 유효하지 않은 height 검증
+    if (height <= 0 || !isFinite(height)) {
+        if (import.meta.env?.DEV) {
+            console.warn('Invalid MTEXT entity: invalid height', {
+                height,
+                entity,
+            });
+        }
+        return null;
+    }
+
+    return {
+        content: parseMTextFormatting(rawContent),
+        rawContent,
+        position: toPoint3D(entity.center ?? entity.start),
+        height,
+        width: entity.referenceRectangleWidth ?? 0,
+        rotation: entity.textRotation ?? 0,
+        attachment: mapMTextAttachment(entity.attachmentPoint),
+        layer: entity.layer,
+    };
+}
+
+/**
+ * ELLIPSE 엔티티 파싱
+ * @param entity DXF 라이브러리 엔티티
+ * @returns 파싱된 ELLIPSE 또는 유효하지 않으면 null
+ */
+export function parseEllipse(entity: DXFLibEntity): ParsedEllipse | null {
+    const majorAxisEnd = entity.majorAxisEndPoint;
+
+    // 장축 끝점 필수
+    if (!majorAxisEnd) {
+        if (import.meta.env?.DEV) {
+            console.warn(
+                'Invalid ELLIPSE entity: missing majorAxisEndPoint',
+                entity
+            );
+        }
+        return null;
+    }
+
+    const axisRatio = entity.axisRatio ?? 1;
+
+    // 유효하지 않은 축 비율 검증 (0 < ratio <= 1)
+    if (axisRatio <= 0 || axisRatio > 1 || !isFinite(axisRatio)) {
+        if (import.meta.env?.DEV) {
+            console.warn('Invalid ELLIPSE entity: invalid axisRatio', {
+                axisRatio,
+                entity,
+            });
+        }
+        return null;
+    }
+
+    return {
+        center: toPoint3D(entity.center),
+        majorAxisEnd: toPoint3D(majorAxisEnd),
+        minorAxisRatio: axisRatio,
+        startParam: entity.startParameter ?? 0,
+        endParam: entity.endParameter ?? Math.PI * 2,
+        layer: entity.layer,
+    };
+}
+
+/**
+ * SPLINE 엔티티 파싱
+ * @param entity DXF 라이브러리 엔티티
+ * @returns 파싱된 SPLINE 또는 유효하지 않으면 null
+ */
+export function parseSpline(entity: DXFLibEntity): ParsedSpline | null {
+    const controlPoints = toPoint3DArray(entity.controlPoints);
+
+    // 최소 2개의 제어점 필요
+    if (controlPoints.length < 2) {
+        if (import.meta.env?.DEV) {
+            console.warn('Invalid SPLINE entity: insufficient control points', {
+                count: controlPoints.length,
+                entity,
+            });
+        }
+        return null;
+    }
+
+    const degree = entity.degreeOfSplineCurve ?? 3;
+
+    // 유효하지 않은 차수 검증
+    if (degree < 1 || !Number.isInteger(degree)) {
+        if (import.meta.env?.DEV) {
+            console.warn('Invalid SPLINE entity: invalid degree', {
+                degree,
+                entity,
+            });
+        }
+        return null;
+    }
+
+    // 플래그에서 닫힘 여부 확인 (bit 0)
+    const closed = ((entity.flag ?? 0) & 1) === 1;
+
+    return {
+        controlPoints,
+        degree,
+        knots: entity.knotValues,
+        weights: entity.weights,
+        closed,
+        layer: entity.layer,
+    };
+}
+
+/**
+ * DIMENSION 타입 매핑
+ * DXF 그룹 코드 70: 0-6 (하위 비트만 사용)
+ */
+function mapDimensionType(code: number | undefined): DimensionType {
+    const dimType = (code ?? 0) & 0x0f; // 하위 4비트만 사용
+    switch (dimType) {
+        case 0:
+            return 'linear';
+        case 1:
+            return 'aligned';
+        case 2:
+            return 'angular';
+        case 3:
+            return 'diameter';
+        case 4:
+            return 'radius';
+        case 5:
+            return 'angular3';
+        case 6:
+            return 'ordinate';
+        default:
+            return 'linear';
+    }
+}
+
+/**
+ * DIMENSION 엔티티 파싱
+ * @param entity DXF 라이브러리 엔티티
+ * @returns 파싱된 DIMENSION 또는 유효하지 않으면 null
+ */
+export function parseDimension(entity: DXFLibEntity): ParsedDimension | null {
+    // 정의점 1은 center 또는 start에서 가져옴
+    const defPoint1 = entity.center ?? entity.start;
+    const defPoint2 = entity.defPoint2;
+
+    // 최소 2개의 정의점 필요
+    if (!defPoint1 || !defPoint2) {
+        if (import.meta.env?.DEV) {
+            console.warn(
+                'Invalid DIMENSION entity: missing definition points',
+                entity
+            );
+        }
+        return null;
+    }
+
+    return {
+        dimensionType: mapDimensionType(entity.dimensionType),
+        defPoint1: toPoint3D(defPoint1),
+        defPoint2: toPoint3D(defPoint2),
+        defPoint3: entity.defPoint3 ? toPoint3D(entity.defPoint3) : undefined,
+        defPoint4: entity.defPoint4 ? toPoint3D(entity.defPoint4) : undefined,
+        textMidPoint: toPoint3D(entity.textMidPoint),
+        text: entity.dimensionText ?? '',
+        rotation: entity.textRotation ?? 0,
+        styleName: entity.dimensionStyleName,
+        layer: entity.layer,
+    };
+}
+
+// ============================================================
 // 배치 파싱 함수 (전체 엔티티 배열 처리)
 // ============================================================
 
@@ -245,6 +567,12 @@ export interface ParsedEntities {
     arcs: ParsedArc[];
     polylines: ParsedPolyline[];
     hatches: ParsedHatch[];
+    // Phase 2.1.4: 추가 엔티티
+    texts: ParsedText[];
+    mtexts: ParsedMText[];
+    ellipses: ParsedEllipse[];
+    splines: ParsedSpline[];
+    dimensions: ParsedDimension[];
 }
 
 /**
@@ -264,6 +592,12 @@ export function parseAllEntities(
     const arcs: ParsedArc[] = [];
     const polylines: ParsedPolyline[] = [];
     const hatches: ParsedHatch[] = [];
+    // Phase 2.1.4: 추가 엔티티 배열
+    const texts: ParsedText[] = [];
+    const mtexts: ParsedMText[] = [];
+    const ellipses: ParsedEllipse[] = [];
+    const splines: ParsedSpline[] = [];
+    const dimensions: ParsedDimension[] = [];
 
     const total = entities.length;
 
@@ -303,11 +637,48 @@ export function parseAllEntities(
                 if (hatch) hatches.push(hatch);
                 break;
             }
+            // Phase 2.1.4: 추가 엔티티 타입
+            case 'TEXT': {
+                const text = parseText(entity);
+                if (text) texts.push(text);
+                break;
+            }
+            case 'MTEXT': {
+                const mtext = parseMText(entity);
+                if (mtext) mtexts.push(mtext);
+                break;
+            }
+            case 'ELLIPSE': {
+                const ellipse = parseEllipse(entity);
+                if (ellipse) ellipses.push(ellipse);
+                break;
+            }
+            case 'SPLINE': {
+                const spline = parseSpline(entity);
+                if (spline) splines.push(spline);
+                break;
+            }
+            case 'DIMENSION': {
+                const dimension = parseDimension(entity);
+                if (dimension) dimensions.push(dimension);
+                break;
+            }
             // 지원하지 않는 엔티티 타입은 무시
         }
     }
 
-    return { lines, circles, arcs, polylines, hatches };
+    return {
+        lines,
+        circles,
+        arcs,
+        polylines,
+        hatches,
+        texts,
+        mtexts,
+        ellipses,
+        splines,
+        dimensions,
+    };
 }
 
 /**
@@ -319,6 +690,12 @@ export function getTotalEntityCount(entities: ParsedEntities): number {
         entities.circles.length +
         entities.arcs.length +
         entities.polylines.length +
-        entities.hatches.length
+        entities.hatches.length +
+        // Phase 2.1.4: 추가 엔티티
+        entities.texts.length +
+        entities.mtexts.length +
+        entities.ellipses.length +
+        entities.splines.length +
+        entities.dimensions.length
     );
 }

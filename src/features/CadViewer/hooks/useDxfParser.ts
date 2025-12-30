@@ -10,20 +10,15 @@ import { useState, useCallback } from 'react';
 import DxfParser from 'dxf-parser';
 
 import { MESSAGES } from '@/locales';
+import type { ParsedCADData, LayerInfo } from '@/types/cad';
+import { calculateBounds } from '@/utils/cad';
 
 import { aciToHex, DEFAULT_LAYER_COLOR } from '../constants';
 import { parseAllEntities, getTotalEntityCount } from '../services';
-import { calculateBounds } from '../utils/dxfToGeometry';
 
-import type {
-    ParsedCADData,
-    LayerInfo,
-    UploadError,
-    DXFLibEntity,
-    DXFLibLayer,
-} from '../types';
+import type { UploadError, DXFLibEntity, DXFLibLayer } from '../types';
 
-interface UseDXFParserReturn {
+interface UseDxfParserReturn {
     /** DXF 파일 파싱 함수 */
     parse: (file: File) => Promise<ParsedCADData>;
     /** 로딩 상태 */
@@ -37,7 +32,7 @@ interface UseDXFParserReturn {
 /**
  * DXF 파일 파싱 훅
  */
-export function useDXFParser(): UseDXFParserReturn {
+export function useDxfParser(): UseDxfParserReturn {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<UploadError | null>(null);
 
@@ -64,17 +59,24 @@ export function useDXFParser(): UseDXFParserReturn {
             }
 
             // 공유 파서를 사용하여 모든 엔티티 추출 (단일 순회)
-            const { lines, circles, arcs, polylines, hatches } =
-                parseAllEntities(dxf.entities as DXFLibEntity[]);
-
-            // 전체 엔티티 수 계산
-            const totalEntityCount = getTotalEntityCount({
+            const parsedEntities = parseAllEntities(
+                dxf.entities as DXFLibEntity[]
+            );
+            const {
                 lines,
                 circles,
                 arcs,
                 polylines,
                 hatches,
-            });
+                texts,
+                mtexts,
+                ellipses,
+                splines,
+                dimensions,
+            } = parsedEntities;
+
+            // 전체 엔티티 수 계산
+            const totalEntityCount = getTotalEntityCount(parsedEntities);
 
             // 레이어 정보 구축
             const layers = new Map<string, LayerInfo>();
@@ -105,6 +107,11 @@ export function useDXFParser(): UseDXFParserReturn {
                 ...arcs.map((e) => e.layer),
                 ...polylines.map((e) => e.layer),
                 ...hatches.map((e) => e.layer),
+                ...texts.map((e) => e.layer),
+                ...mtexts.map((e) => e.layer),
+                ...ellipses.map((e) => e.layer),
+                ...splines.map((e) => e.layer),
+                ...dimensions.map((e) => e.layer),
             ];
 
             for (const layerName of allEntities) {
@@ -140,6 +147,11 @@ export function useDXFParser(): UseDXFParserReturn {
                 arcs,
                 polylines,
                 hatches,
+                texts,
+                mtexts,
+                ellipses,
+                splines,
+                dimensions,
                 bounds: calculateBounds(
                     lines,
                     circles,
